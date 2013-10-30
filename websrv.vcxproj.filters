@@ -1,0 +1,109 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="luaM.h" />
+    <ClInclude Include="libwebserver\client.h">
+      <Filter>libwebserver</Filter>
+    </ClInclude>
+    <ClInclude Include="libwebserver\clientinfo.h">
+      <Filter>libwebserver</Filter>
+    </ClInclude>
+    <ClInclude Include="libwebserver\config.h">
+      <Filter>libwebserver</Filter>
+    </ClInclude>
+    <ClInclude Include="libwebserver\debug.h">
+      <Filter>libwebserver</Filter>
+    </ClInclude>
+    <ClInclude Include="libwebserver\dirent.h">
+      <Filter>libwebserver</Filter>
+    </ClInclude>
+    <ClInclude Include="libwebserver\error.h">
+      <Filter>libwebserver</Filter>
+    </ClInclude>
+    <ClInclude Include="libwebserver\flock.h">
+      <Filter>libwebserver</Filter>
+    </ClInclude>
+    <ClInclude Include="libwebserver\fnmatch.h">
+      <Filter>libwebserver</Filter>
+    </ClInclude>
+    <ClInclude Include="libwebserver\gethandler.h">
+      <Filter>libwebserver</Filter>
+    </ClInclude>
+    <ClInclude Include="libwebserver\logo.h">
+      <Filter>libwebserver</Filter>
+    </ClInclude>
+    <ClInclude Include="libwebserver\memory.h">
+      <Filter>libwebserver</Filter>
+    </ClInclude>
+    <ClInclude Include="libwebserver\outgif.h">
+      <Filter>libwebserver</Filter>
+    </ClInclude>
+    <ClInclude Include="libwebserver\outstream.h">
+      <Filter>libwebserver</Filter>
+    </ClInclude>
+    <ClInclude Include="libwebserver\server.h">
+      <Filter>libwebserver</Filter>
+    </ClInclude>
+    <ClInclude Include="libwebserver\socket.h">
+      <Filter>libwebserver</Filter>
+    </ClInclude>
+    <ClInclude Include="libwebserver\utils.h">
+      <Filter>libwebserver</Filter>
+    </ClInclude>
+    <ClInclude Include="libwebserver\web_server.h">
+      <Filter>libwebserver</Filter>
+    </ClInclude>
+    <ClInclude Include="libwebserver\weblog.h">
+      <Filter>libwebserver</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="libwebserver">
+      <UniqueIdentifier>{8aa2eee6-ca8b-482e-8e59-d4d1e4f75f5f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="libwebserver\client.c">
+      <Filter>libwebserver</Filter>
+    </ClCompile>
+    <ClCompile Include="libwebserver\clientinfo.c">
+      <Filter>libwebserver</Filter>
+    </ClCompile>
+    <ClCompile Include="libwebserver\dirent.c">
+      <Filter>libwebserver</Filter>
+    </ClCompile>
+    <ClCompile Include="libwebserver\error.c">
+      <Filter>libwebserver</Filter>
+    </ClCompile>
+    <ClCompile Include="libwebserver\flock.c">
+      <Filter>libwebserver</Filter>
+    </ClCompile>
+    <ClCompile Include="libwebserver\fnmatch.c">
+      <Filter>libwebserver</Filter>
+    </ClCompile>
+    <ClCompile Include="libwebserver\gethandler.c">
+      <Filter>libwebserver</Filter>
+    </ClCompile>
+    <ClCompile Include="libwebserver\memory.c">
+      <Filter>libwebserver</Filter>
+    </ClCompile>
+    <ClCompile Include="libwebserver\outgif.c">
+      <Filter>libwebserver</Filter>
+    </ClCompile>
+    <ClCompile Include="libwebserver\outstream.c">
+      <Filter>libwebserver</Filter>
+    </ClCompile>
+    <ClCompile Include="libwebserver\server.c">
+      <Filter>libwebserver</Filter>
+    </ClCompile>
+    <ClCompile Include="libwebserver\socket.c">
+      <Filter>libwebserver</Filter>
+    </ClCompile>
+    <ClCompile Include="libwebserver\utils.c">
+      <Filter>libwebserver</Filter>
+    </ClCompile>
+    <ClCompile Include="libwebserver\weblog.c">
+      <Filter>libwebserver</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

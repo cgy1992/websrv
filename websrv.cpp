@@ -32,31 +32,16 @@
 #include <stdlib.h>
 
 #include "luaM.h"
+#include "libwebserver/web_server.h"
 
 #if defined(WIN32)
 #	include <winsock2.h> 
-#	include <iphlpapi.h> 
 #	pragma comment(lib, "ws2_32.lib")
-#	pragma comment(lib, "iphlpapi.lib")
-
-	luaM_func_begin(read)
-		luaM_reqd_param(string, ip)
-		IPAddr addr = inet_addr(ip);
-		unsigned char mac[6];
-		ULONG len = sizeof(mac);
-		DWORD err = SendARP(addr, 0, mac, &len);
-		if(NO_ERROR == err)
-		{
-			char str[32] = {0};
-			sprintf(str, "%02X-%02X-%02X-%02X-%02X-%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]); 
-			luaM_return(string, str)
-		}
-		else
-			return luaL_error(L, "SendARP failed with error %d", err);
-	luaM_func_end
-
+#	if defined(HAVE_OPENSSL)
+#		pragma comment(lib, "libeay32.lib")
+#		pragma comment(lib, "ssleay32.lib")
+#	endif
 #elif defined(LINUX)
-
 #	include <unistd.h>
 #	include <sys/socket.h>
 #	include <sys/types.h>
@@ -64,121 +49,201 @@
 #	include <netdb.h>
 #	include <netinet/if_ether.h>
 #	include <fcntl.h>
-
-	struct auto_socket_closer
-	{
-		int socket;
-		auto_socket_closer(int s) : socket(s) { }
-		~auto_socket_closer() 
-		{ 
-			if(socket >= 0) 
-				close(socket); 
-		}
-	};
-
-	luaM_func_begin(read)
-		luaM_reqd_param(string, ip)
-		luaM_reqd_param(unsigned, port)
-		luaM_opt_param(unsigned, attempts, 1000)
-		luaM_opt_param(unsigned, timeout, 5)
-
-		auto_socket_closer rawsock(socket(PF_PACKET, SOCK_RAW, htons(ETH_P_IP)));
-		if(rawsock.socket < 0)
-			return luaL_error(L, "raw socket() failed");
-
-		hostent *host = gethostbyname(ip);
-		if(!host)
-			return luaL_error(L, "gethostbyname failed");
-
-		auto_socket_closer sock(socket(AF_INET, SOCK_STREAM, 0));
-		if(sock.socket < 0)
-			return luaL_error(L, "socket() failed");
-
-		fcntl(sock.socket, F_SETFL, O_NONBLOCK);
-
-		sockaddr_in addr = {0};
-		addr.sin_family = AF_INET;
-		addr.sin_port = htons(port);
-		addr.sin_addr = *((in_addr *)host->h_addr);
-		//if(connect(sock.socket, (sockaddr*)&addr, sizeof(sockaddr)) < 0)
-			//return luaL_error(L, "connect() failed");
-		connect(sock.socket, (sockaddr*)&addr, sizeof(sockaddr));
-
-		fd_set fdset;
-		timeval tv = {0};
-		tv.tv_sec = timeout;
-		FD_ZERO(&fdset);
-		FD_SET(sock.socket, &fdset);
-
-		if(1 != select(sock.socket + 1, nullptr, &fdset, nullptr, &tv) == 1)
-			return luaL_error(L, "select() failed");
-
-		int error = 0;
-		socklen_t len = sizeof(error);
-		getsockopt(sock.socket, SOL_SOCKET, SO_ERROR, &error, &len);
-		if(error)
-			return luaL_error(L, "select() failed with error %d", error);
-
-		fcntl(sock.socket, F_SETFL, 0);
-
-		for(int i = 0; i < attempts; i++)
-		{
-			unsigned char data[64];
-			unsigned char* buf = data;
-
-			while(buf - data <= 34)
-			{
-				int n = recvfrom(rawsock.socket, buf, sizeof(data) - (buf - data), 0, nullptr, nullptr);
-				if(n < 0)
-					return luaL_error(L, "recvfrom() failed");
-				buf += n;
-			}
-
-			if(buf - data > 34)
-			{
-				buf = data + 14;
-				if(0x45 == *buf)
-				{
-					//printf("%X %X %X\n", addr.sin_addr, *(in_addr*)(buf + 12), *(in_addr*)(buf + 16)); 
-					int idx = -1;
-					if(0 == memcmp(buf + 12, &addr.sin_addr, sizeof(addr.sin_addr)))
-						idx = 6;
-					else if(0 == memcmp(buf + 16, &addr.sin_addr, sizeof(addr.sin_addr)))
-						idx = 0;
-					if(idx >= 0)
-					{
-						//printf("0 %02X-%02X-%02X-%02X-%02X-%02X \n", data[0], data[1], data[2], data[3], data[4], data[5]);
-						//printf("6 %02X-%02X-%02X-%02X-%02X-%02X \n", data[6], data[7], data[8], data[9], data[10], data[11]);
-						char mac[32] = {0};
-						sprintf(mac, "%02X-%02X-%02X-%02X-%02X-%02X", data[idx], data[idx + 1], data[idx + 2], data[idx + 3], data[idx + 4], data[idx + 5]);
-						luaM_return(string, mac)
-						break;
-					}
-				}
-			}
-		}
-
-		if(!result)
-			return luaL_error(L, "%d attempts are over", attempts);
-
-	luaM_func_end
-
 #elif defined(OSX)
 #	error incompatible platform
 #else
 #	error incompatible platform
 #endif
 
+#define websrv_reg_flag(NAME) luaM_setfield(-1, integer, NAME, WS_##NAME)
+void websrv_reg_flags(lua_State *L)
+{
+	websrv_reg_flag(LOCAL)
+	websrv_reg_flag(USESSL)
+	websrv_reg_flag(USEEXTCONF) 
+	websrv_reg_flag(DYNVAR) 
+	websrv_reg_flag(USELEN) 
+}
+
+//struct context_t
+//{
+//	lua_State* L;
+//	web_server server;
+//
+//	context_t() : L(nullptr) {}
+//
+//	void init(lua_State* l, int port, const char* file, int flags)
+//	{
+//
+//    }
+//
+//	~context_t()
+//	{
+//		//if(LUA_NOREF != callback)
+//			//luaL_unref(L, LUA_REGISTRYINDEX, callback);
+//	}
+//}; 
+//
+//luaM__gc(context_t)
+
+luaM_func_begin(init)
+	luaM_opt_param(integer, port, 80)
+	luaM_opt_param(string, file, nullptr)
+	luaM_opt_param(integer, flags, 0)
+	web_server* server = new web_server;
+	if(web_server_init(server, port, file, flags))
+	{
+		luaM_return(lightuserdata, server);
+	}
+	else
+	{
+		delete server;
+		return luaL_error(L, "web_server_init failed");
+	}
+luaM_func_end
+
+luaM_func_begin(addhandler)
+luaM_func_end
+
+luaM_func_begin(aliasdir)
+	luaM_reqd_param(userdata, server)
+	luaM_reqd_param(string, alias)
+	luaM_reqd_param(string, path)
+	luaM_opt_param(integer, flags, 0)
+	if(!web_server_aliasdir((web_server*)server, alias, (char*)path, flags))
+		return luaL_error(L, "web_server_aliasdir failed");
+luaM_func_end
+
+luaM_func_begin(run)
+	luaM_reqd_param(userdata, server)
+	if(!web_server_run((web_server*)server))
+		return luaL_error(L, "web_server_run failed");
+luaM_func_end
+
+luaM_func_begin(getconf)
+	luaM_reqd_param(userdata, server)
+	luaM_reqd_param(string, topic)
+	luaM_reqd_param(string, key)
+	char* value = web_server_getconf((web_server*)server, (char*)topic, (char*)key);
+	if(value)
+	{
+		luaM_return(string, value);
+	}
+luaM_func_end
+
+luaM_func_begin(useSSLcert)
+	luaM_reqd_param(userdata, server)
+	luaM_reqd_param(string, file)
+	web_server_useSSLcert((web_server*)server, file);
+luaM_func_end
+
+luaM_func_begin(useMIMEfile)
+	luaM_reqd_param(userdata, server)
+	luaM_reqd_param(string, file)
+	web_server_useMIMEfile((web_server*)server, file);
+luaM_func_end
+
+luaM_func_begin(addstream)
+luaM_func_end
+
+luaM_func_begin(addfile)
+	luaM_reqd_param(string, file)
+	web_client_addfile((char*)file);
+luaM_func_end
+
+luaM_func_begin(gifoutput)
+	luaM_reqd_param(string, file)
+	//web_client_gifoutput((char*)file);
+luaM_func_end
+
+luaM_func_begin(gifsetpalette)
+	luaM_reqd_param(string, file)
+	web_client_gifsetpalette(file);
+luaM_func_end
+
+luaM_func_begin(setcookie)
+	luaM_reqd_param(string, key)
+	luaM_reqd_param(string, value)
+	luaM_reqd_param(string, timeoffset)
+	luaM_opt_param(string, path, nullptr)
+	luaM_opt_param(string, domain, nullptr)
+	luaM_opt_param(boolean, secure, false)
+	web_client_setcookie((char*)key, (char*)value, (char*)timeoffset, (char*)path, (char*)domain, secure ? 1 : 0);
+luaM_func_end
+
+luaM_func_begin(deletecookie)
+	luaM_reqd_param(string, key)
+	web_client_deletecookie((char*)key);
+luaM_func_end
+
+luaM_func_begin(setvar)
+	luaM_reqd_param(string, name)
+	luaM_reqd_param(string, value)
+	web_client_setvar((char*)name, (char*)value);
+luaM_func_end
+
+luaM_func_begin(getvar)
+	luaM_reqd_param(string, name)
+	char* value = web_client_getvar((char*)name);
+	if(value)
+	{
+		luaM_return(string, value);
+	}
+luaM_func_end
+
+luaM_func_begin(delvar)
+	luaM_reqd_param(string, name)
+	web_client_delvar((char*)name);
+luaM_func_end
+
+luaM_func_begin(HTTPdirective)
+	luaM_reqd_param(string, directive)
+	web_client_HTTPdirective((char*)directive);
+luaM_func_end
+
+luaM_func_begin(contenttype)
+	luaM_reqd_param(string, extension)
+	web_client_contenttype((char*)extension);
+luaM_func_end
+
 static const struct luaL_Reg lib[] =
 {
 	//{"savestack", luaM_save_stack},
-	{"read", read},
     {nullptr, nullptr},
 };
 
-#define conf0_reg_enum(NAME) \
+static const struct luaL_Reg serverlib[] =
+{
+	//{"savestack", luaM_save_stack},
+	{"init", init},
+	{"addhandler", addhandler},
+	{"aliasdir", aliasdir},
+	{"run", run},
+	{"getconf", getconf},
+	{"useSSLcert", useSSLcert},
+	{"useMIMEfile", useMIMEfile},
+    {nullptr, nullptr},
+};
+
+static const struct luaL_Reg clientlib[] =
+{
+	{"addstream", addstream},
+	{"addfile", addfile},
+	{"gifoutput", gifoutput},
+	{"gifsetpalette", gifsetpalette},
+	{"setcookie", setcookie},
+	{"deletecookie", deletecookie},
+	{"setvar", setvar},
+	{"getvar", getvar},
+	{"delvar", delvar},
+	{"HTTPdirective", HTTPdirective},
+	{"contenttype", contenttype},
+    {nullptr, nullptr},
+};
+
+#define websrv_reg_enum(NAME) \
 	lua_newtable(L); \
-	conf0_reg_##NAME(L); \
+	websrv_reg_##NAME(L); \
 	lua_setfield(L, -2, #NAME);
 
 extern "C"
@@ -186,6 +251,7 @@ extern "C"
 	LUAMOD_API int luaopen_websrv(lua_State *L)
 	{
 		luaL_newlib (L, lib);
+		websrv_reg_enum(flags)
 		lua_setglobal(L, "websrv");
 		return 1;
 	}

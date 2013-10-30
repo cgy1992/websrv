@@ -88,9 +88,41 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="libwebserver\client.h" />
+    <ClInclude Include="libwebserver\clientinfo.h" />
+    <ClInclude Include="libwebserver\config.h" />
+    <ClInclude Include="libwebserver\debug.h" />
+    <ClInclude Include="libwebserver\dirent.h" />
+    <ClInclude Include="libwebserver\error.h" />
+    <ClInclude Include="libwebserver\flock.h" />
+    <ClInclude Include="libwebserver\fnmatch.h" />
+    <ClInclude Include="libwebserver\gethandler.h" />
+    <ClInclude Include="libwebserver\logo.h" />
+    <ClInclude Include="libwebserver\memory.h" />
+    <ClInclude Include="libwebserver\outgif.h" />
+    <ClInclude Include="libwebserver\outstream.h" />
+    <ClInclude Include="libwebserver\server.h" />
+    <ClInclude Include="libwebserver\socket.h" />
+    <ClInclude Include="libwebserver\utils.h" />
+    <ClInclude Include="libwebserver\weblog.h" />
+    <ClInclude Include="libwebserver\web_server.h" />
     <ClInclude Include="luaM.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="libwebserver\client.c" />
+    <ClCompile Include="libwebserver\clientinfo.c" />
+    <ClCompile Include="libwebserver\dirent.c" />
+    <ClCompile Include="libwebserver\error.c" />
+    <ClCompile Include="libwebserver\flock.c" />
+    <ClCompile Include="libwebserver\fnmatch.c" />
+    <ClCompile Include="libwebserver\gethandler.c" />
+    <ClCompile Include="libwebserver\memory.c" />
+    <ClCompile Include="libwebserver\outgif.c" />
+    <ClCompile Include="libwebserver\outstream.c" />
+    <ClCompile Include="libwebserver\server.c" />
+    <ClCompile Include="libwebserver\socket.c" />
+    <ClCompile Include="libwebserver\utils.c" />
+    <ClCompile Include="libwebserver\weblog.c" />
     <ClCompile Include="websrv.cpp" />
   </ItemGroup>
   <ItemGroup>
