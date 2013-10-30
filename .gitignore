@@ -46,5 +46,5 @@ obj/
 stack.txt
 lua11dump.txt
 *.dll
-websrv.lib
+*.lib
 *.bat
