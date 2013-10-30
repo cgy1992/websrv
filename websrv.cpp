@@ -27,6 +27,7 @@
 #	define LINUX
 #endif
 
+#include <io.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -93,12 +94,28 @@ struct context_t
 	context_t(lua_State* l, int f) : L(l), func(f) {}
 }; 
 
+int io_fclose (lua_State *L) 
+{ 
+	return 0; 
+}
+
 void handler(void* userdata)
 {
 	context_t* context = (context_t*)userdata;
-	lua_rawgeti(context->L, LUA_REGISTRYINDEX, context->func); 
-	if(lua_pcall(context->L, 0, 0, 0)) 
-		lua_pop(context->L, 1); 
+	lua_State* L = context->L;
+	lua_rawgeti(L, LUA_REGISTRYINDEX, context->func); 
+	luaL_Stream* stream = (luaL_Stream*)lua_newuserdata(L, sizeof(luaL_Stream));
+	stream->closef = &io_fclose;  
+	int tmp = dup(fileno(stdout));
+	stream->f = fdopen(tmp, "wb+");
+	luaL_setmetatable(L, LUA_FILEHANDLE);
+	if(lua_pcall(L, 1, 0, 0)) 
+	{
+		printf("Content-type: text/plain\r\n\r\n");
+		printf("%s\r\n", lua_tostring(L, -1));
+		web_client_HTTPdirective("HTTP/1.1 500 Internal Error");
+		lua_pop(L, 1); 
+	}
 }
 
 luaM_func_begin(addhandler)
