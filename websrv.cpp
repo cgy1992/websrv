@@ -94,7 +94,17 @@ struct context_t
 	context_t(lua_State* l, int f) : L(l), func(f) {}
 }; 
 
-//int io_fclose (lua_State *L) { 	return 0; }
+//int io_fclose (lua_State *L) 
+//{ 
+//	LStream *p = tolstream(L);
+//	int res = fclose(p->f);
+//	return 0; 
+//}
+//	luaL_Stream* output = (luaL_Stream*)lua_newuserdata(L, sizeof(luaL_Stream));
+//	output->closef = &io_fclose;  
+//	output->f = fdopen(ClientInfo->outfd, "wb+");
+//	luaL_setmetatable(L, LUA_FILEHANDLE);
+//	lua_setfield(L, -2, "output");
 
 int write(lua_State *L) 
 { 	
@@ -110,16 +120,53 @@ int write(lua_State *L)
 		return luaL_error(L, "write function accepts one string parameter");
 }
 
+int commonfunc(lua_State *L)
+{
+	typedef char*(*proc_t)(char*);
+	proc_t proc = (proc_t)lua_touserdata(L, lua_upvalueindex(1));
+	lua_pushstring(L, proc((char*)lua_tostring(L, 1)));
+	return 1;
+}
+
+int multipartfunc(lua_State *L)
+{
+	typedef _MultiPart(*proc_t)(char*);
+	proc_t proc = (proc_t)lua_touserdata(L, lua_upvalueindex(1));
+	_MultiPart multipart = proc((char*)lua_tostring(L, 1));
+	lua_newtable(L);
+	luaM_setfield(-1, string, id, multipart.id);
+	luaM_setfield(-1, unsigned, size, multipart.size);
+	luaM_setfield(-1, string, filename, multipart.filename);
+	luaM_setfield(-1, lstring, data, multipart.data, multipart.size);
+	return 1;
+}
+
+#define websrv_pushfunc(NAME, FUNC) \
+	lua_pushlightuserdata(L, ClientInfo->NAME); \
+	lua_pushcclosure(L, FUNC, 1); \
+	lua_setfield(L, -2, #NAME);
+
 void handler(void* userdata)
 {
 	context_t* context = (context_t*)userdata;
 	lua_State* L = context->L;
 	lua_rawgeti(L, LUA_REGISTRYINDEX, context->func); 
-	//luaL_Stream* stream = (luaL_Stream*)lua_newuserdata(L, sizeof(luaL_Stream));
-	//stream->closef = &io_fclose;  
-	//stream->f = stdout;
-	//luaL_setmetatable(L, LUA_FILEHANDLE);
-	lua_pushcfunction(L, write);
+
+	lua_newtable(L); 
+	luaM_setfield(-1, integer, outfd, ClientInfo->outfd);
+	luaM_setfield(-1, string, inetname, ClientInfo->inetname);
+	luaM_setfield(-1, string, request, ClientInfo->request);
+	luaM_setfield(-1, string, method, ClientInfo->method);
+	luaM_setfield(-1, string, username, ClientInfo->user);
+	luaM_setfield(-1, string, password, ClientInfo->pass);
+	
+	websrv_pushfunc(Header, commonfunc)
+	websrv_pushfunc(Query, commonfunc)
+	websrv_pushfunc(Post, commonfunc)
+	websrv_pushfunc(Cookie, commonfunc)
+	websrv_pushfunc(MultiPart, multipartfunc)
+
+	luaM_setfield(-1, cfunction, write, write);
 	if(lua_pcall(L, 1, 0, 0)) 
 	{
 		printf("Content-type: text/plain\r\n\r\n");
