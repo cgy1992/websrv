@@ -94,9 +94,20 @@ struct context_t
 	context_t(lua_State* l, int f) : L(l), func(f) {}
 }; 
 
-int io_fclose (lua_State *L) 
-{ 
-	return 0; 
+//int io_fclose (lua_State *L) { 	return 0; }
+
+int write(lua_State *L) 
+{ 	
+	if(lua_isstring(L, 1))
+	{
+		size_t size;
+		const char* buf = lua_tolstring(L, 1, &size);
+		if(buf && size)
+			fwrite(buf, size, 1, stdout);
+		return 0;
+	}
+	else
+		return luaL_error(L, "write function accepts one string parameter");
 }
 
 void handler(void* userdata)
@@ -104,11 +115,11 @@ void handler(void* userdata)
 	context_t* context = (context_t*)userdata;
 	lua_State* L = context->L;
 	lua_rawgeti(L, LUA_REGISTRYINDEX, context->func); 
-	luaL_Stream* stream = (luaL_Stream*)lua_newuserdata(L, sizeof(luaL_Stream));
-	stream->closef = &io_fclose;  
-	int tmp = dup(fileno(stdout));
-	stream->f = fdopen(tmp, "wb+");
-	luaL_setmetatable(L, LUA_FILEHANDLE);
+	//luaL_Stream* stream = (luaL_Stream*)lua_newuserdata(L, sizeof(luaL_Stream));
+	//stream->closef = &io_fclose;  
+	//stream->f = stdout;
+	//luaL_setmetatable(L, LUA_FILEHANDLE);
+	lua_pushcfunction(L, write);
 	if(lua_pcall(L, 1, 0, 0)) 
 	{
 		printf("Content-type: text/plain\r\n\r\n");
