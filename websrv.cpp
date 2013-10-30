@@ -86,6 +86,11 @@ void websrv_reg_flags(lua_State *L)
 //
 //luaM__gc(context_t)
 
+luaM_func_begin(log)
+	luaM_reqd_param(string, message)
+	web_log(message);
+luaM_func_end
+
 luaM_func_begin(init)
 	luaM_opt_param(integer, port, 80)
 	luaM_opt_param(string, file, nullptr)
@@ -209,12 +214,12 @@ luaM_func_end
 static const struct luaL_Reg lib[] =
 {
 	//{"savestack", luaM_save_stack},
+	{"log", log},
     {nullptr, nullptr},
 };
 
-static const struct luaL_Reg serverlib[] =
+static const struct luaL_Reg server[] =
 {
-	//{"savestack", luaM_save_stack},
 	{"init", init},
 	{"addhandler", addhandler},
 	{"aliasdir", aliasdir},
@@ -225,7 +230,7 @@ static const struct luaL_Reg serverlib[] =
     {nullptr, nullptr},
 };
 
-static const struct luaL_Reg clientlib[] =
+static const struct luaL_Reg client[] =
 {
 	{"addstream", addstream},
 	{"addfile", addfile},
@@ -246,12 +251,19 @@ static const struct luaL_Reg clientlib[] =
 	websrv_reg_##NAME(L); \
 	lua_setfield(L, -2, #NAME);
 
+#define websrv_reg_lib(NAME) \
+	lua_newtable(L); \
+	luaL_setfuncs(L, NAME, 0); \
+	lua_setfield(L, -2, #NAME);
+
 extern "C"
 {
 	LUAMOD_API int luaopen_websrv(lua_State *L)
 	{
-		luaL_newlib (L, lib);
+		luaL_newlib(L, lib);
 		websrv_reg_enum(flags)
+		websrv_reg_lib(server)
+		websrv_reg_lib(client)
 		lua_setglobal(L, "websrv");
 		return 1;
 	}
