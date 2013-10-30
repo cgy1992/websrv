@@ -31,6 +31,7 @@ struct gethandler *__ILWS_init_handler_list() {
 	};
 	ret->next=NULL;
 	ret->hdl.func=NULL; // or path
+	ret->userdata=NULL;
 	ret->flag=0;
 	ret->str=NULL;
 	return ret;
@@ -40,7 +41,7 @@ struct gethandler *__ILWS_init_handler_list() {
 /* 
  * add an handler to list
  */
-int __ILWS_add_handler(struct gethandler *handler, const char *mstr, void (*func)(), char *path, int flag, int type) {
+int __ILWS_add_handler(struct gethandler *handler, const char *mstr, void (*func)(void*), char *path, int flag, int type, void* userdata) {
 	struct gethandler *temp=handler;
 	while(temp->next!=NULL)temp=temp->next;
 	
@@ -63,6 +64,7 @@ int __ILWS_add_handler(struct gethandler *handler, const char *mstr, void (*func
 	switch (temp->next->type) {
 		case 0:
 			temp->next->hdl.func=func;         // for function
+			temp->next->userdata = userdata;
 			break;
 		case 1: // new on 0.5.2            // directory or cgi
 		case 2:

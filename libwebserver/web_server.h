@@ -99,7 +99,7 @@ void web_server_useSSLcert(struct web_server *,const char *);  // useless if not
 void web_server_useMIMEfile(struct web_server *,const char *); // new on 0.5.2
 int web_server_init(struct web_server *,int,const char *,int);
 char *web_server_getconf(struct web_server *,char *,char *);
-int web_server_addhandler(struct web_server *,const char *,void (*)(),int);
+int web_server_addhandler(struct web_server *,const char *,void (*)(void*),int,void*);
 int web_server_aliasdir(struct web_server *, const char *,char *,int); // new on 0.5.2
 int web_server_run(struct web_server *);
 

@@ -312,7 +312,7 @@ void __ILWS_process_client(struct web_client *node,struct gethandler *list) {
 			// Setup Clientinfo before running function
 			if(gettemp->type==GH_FUNCTION) {
 				__ILWS_init_clientinfo();	 
-				gettemp->hdl.func(); // changed (0.5.3) Access by named union (Hilobok Andrew (han@km.if.ua) said that wasn't compile on freeBSD)
+				gettemp->hdl.func(gettemp->userdata); // changed (0.5.3) Access by named union (Hilobok Andrew (han@km.if.ua) said that wasn't compile on freeBSD)
 				__ILWS_free_clientinfo();        
 			};
 			// new on 0.5.2

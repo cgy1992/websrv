@@ -61,7 +61,7 @@ void web_server_useMIMEfile(struct web_server *server,const char *file) {
 /*
  *  Handler for libwebserver logotipe
  */
-void _web_server_logo() {
+void _web_server_logo(void* userdata) {
 	printf("Content-type: image/gif\r\n\r\n");
 	fwrite((char *)_logo,sizeof(_logo),1,stdout);
 }        
@@ -71,14 +71,14 @@ void _web_server_logo() {
 /*
  * Add an handler to request data
  */
-int web_server_addhandler(struct web_server *server,const char *mstr,void (*func)(),int flag) {
+int web_server_addhandler(struct web_server *server,const char *mstr,void (*func)(void*),int flag, void* userdata) {
 	_logfile=server->weblog;
 	// xor?
 	flag ^= (server->flags & WS_LOCAL); // global flag to handler flag
 	flag ^= (server->flags & WS_DYNVAR); // global flag to handler flag
 	flag ^= (server->flags & WS_USELEN); // global flag to handler flag
 	web_log("[%s] Adding handler %s <--%s%s%s\n",__ILWS_date(time(NULL),"%d/%b/%Y:%H:%M:%S %z"),mstr, ((flag & WS_LOCAL) == WS_LOCAL && !((server->flags & WS_LOCAL) == WS_LOCAL))?"[LOCAL] ":"", ((flag & WS_DYNVAR) == WS_DYNVAR)?"[DYNVAR]":"", ((flag & WS_USELEN) == WS_USELEN)?"[USELEN]":"");
-	return __ILWS_add_handler((struct gethandler *)server->gethandler,mstr,func,NULL,flag,GH_FUNCTION);
+	return __ILWS_add_handler((struct gethandler *)server->gethandler,mstr,func,NULL,flag,GH_FUNCTION,userdata);
 }
 
 /*********************************************************************************************************/
@@ -99,7 +99,7 @@ int web_server_aliasdir(struct web_server *server, const char *str, char *path,i
 	flag ^= (server->flags & WS_DYNVAR); // global flag to handler flag
 	flag ^= (server->flags & WS_USELEN); // global flag to handler flag
 	web_log("[%s] Adding directory %s <--%s%s%s\n",__ILWS_date(time(NULL),"%d/%b/%Y:%H:%M:%S %z"),mstr, ((flag & WS_LOCAL) == WS_LOCAL && !((server->flags & WS_LOCAL) == WS_LOCAL))?"[LOCAL] ":"", ((flag & WS_DYNVAR) == WS_DYNVAR)?"[DYNVAR]":"", ((flag & WS_USELEN) == WS_USELEN)?"[USELEN]":"");
-	ret=__ILWS_add_handler((struct gethandler *)server->gethandler,mstr,NULL,path,flag,GH_DIRECTORY);
+	ret=__ILWS_add_handler((struct gethandler *)server->gethandler,mstr,NULL,path,flag,GH_DIRECTORY,NULL);
 	__ILWS_free(mstr);
 	return ret;
 };
@@ -314,7 +314,7 @@ int web_server_init(struct web_server *server,int port,const char *logfile,int f
 	};
 	server->client=__ILWS_init_client_list();										// Initializate client list
 	server->gethandler=__ILWS_init_handler_list();									// Initializate handlers list
-	web_server_addhandler(server,"* /libwebserver.gif",_web_server_logo,0);	// Add logo default handler
+	web_server_addhandler(server,"* /libwebserver.gif",_web_server_logo,0,NULL);	// Add logo default handler
 
 #ifndef WIN32	
 	signal(SIGPIPE,SIG_IGN);

@@ -65,27 +65,6 @@ void websrv_reg_flags(lua_State *L)
 	websrv_reg_flag(USELEN) 
 }
 
-//struct context_t
-//{
-//	lua_State* L;
-//	web_server server;
-//
-//	context_t() : L(nullptr) {}
-//
-//	void init(lua_State* l, int port, const char* file, int flags)
-//	{
-//
-//    }
-//
-//	~context_t()
-//	{
-//		//if(LUA_NOREF != callback)
-//			//luaL_unref(L, LUA_REGISTRYINDEX, callback);
-//	}
-//}; 
-//
-//luaM__gc(context_t)
-
 luaM_func_begin(log)
 	luaM_reqd_param(string, message)
 	web_log(message);
@@ -107,8 +86,16 @@ luaM_func_begin(init)
 	}
 luaM_func_end
 
-void handler()
+struct context_t
 {
+	lua_State* L;
+	int func;
+	context_t(lua_State* l, int f) : L(l), func(f) {}
+}; 
+
+void handler(void* userdata)
+{
+	context_t* context = (context_t*)userdata;
 }
 
 luaM_func_begin(addhandler)
@@ -116,7 +103,12 @@ luaM_func_begin(addhandler)
 	luaM_reqd_param(string, mstr)
 	luaM_reqd_param(function, func)
 	luaM_opt_param(integer, flags, 0)
-	web_server_addhandler((web_server*)server, mstr, handler, flags);
+	context_t* context = new context_t(L, func);
+	if(!web_server_addhandler((web_server*)server, mstr, handler, flags, context))
+	{
+		delete context;
+		return luaL_error(L, "web_server_addhandler failed");
+	}
 luaM_func_end
 
 luaM_func_begin(aliasdir)

@@ -72,7 +72,7 @@ struct web_server {
 void web_server_useSSLcert(struct web_server *,const char *); // Mandatory if WS_USESSL set
 void web_server_useMIMEfile(struct web_server*,const char *); // new on 0.5.2
 int web_server_init(struct web_server *,int,const char *,int);
-int web_server_addhandler(struct web_server *,const char *,void (*)(),int);
+int web_server_addhandler(struct web_server *,const char *,void (*)(void*),int,void*);
 int web_server_aliasdir(struct web_server *, const char *, char *,int );
 int web_server_run(struct web_server *);
 int web_server_setup(struct web_server *server,const char *conffile); // (new on 0.5.0)

@@ -46,14 +46,15 @@ struct gethandler {
 	char *str;
 	int type;           // new on 0.5.2  types
 	union hdl_u{        // changed on 0.5.3 named union (Hilobok Andrew (han@km.if.ua) said that wasn't compiling on FreeBSD)
-		void (*func)();   // it is a function
+		void (*func)(void*);   // it is a function
 		char *path;       // it is a path (dir or cgi)
 	}hdl;
+	void* userdata;
 	int flag; 
 	struct gethandler *next;
 };      
 
 struct gethandler *__ILWS_init_handler_list();
-int __ILWS_add_handler(struct gethandler *,const char *,void (*func)(),char *, int,int);
+int __ILWS_add_handler(struct gethandler *,const char *,void (*func)(void*),char *, int, int, void* userdata);
 
 #endif
