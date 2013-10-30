@@ -148,22 +148,10 @@ luaM_func_begin(useMIMEfile)
 	web_server_useMIMEfile((web_server*)server, file);
 luaM_func_end
 
-luaM_func_begin(addstream)
-luaM_func_end
-
 luaM_func_begin(addfile)
 	luaM_reqd_param(string, file)
-	web_client_addfile((char*)file);
-luaM_func_end
-
-luaM_func_begin(gifoutput)
-	luaM_reqd_param(string, file)
-	//web_client_gifoutput((char*)file);
-luaM_func_end
-
-luaM_func_begin(gifsetpalette)
-	luaM_reqd_param(string, file)
-	web_client_gifsetpalette(file);
+	if(!web_client_addfile((char*)file))
+		return luaL_error(L, "web_client_addfile failed");
 luaM_func_end
 
 luaM_func_begin(setcookie)
@@ -232,10 +220,7 @@ static const struct luaL_Reg server[] =
 
 static const struct luaL_Reg client[] =
 {
-	{"addstream", addstream},
 	{"addfile", addfile},
-	{"gifoutput", gifoutput},
-	{"gifsetpalette", gifsetpalette},
 	{"setcookie", setcookie},
 	{"deletecookie", deletecookie},
 	{"setvar", setvar},
