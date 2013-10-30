@@ -96,6 +96,9 @@ struct context_t
 void handler(void* userdata)
 {
 	context_t* context = (context_t*)userdata;
+	lua_rawgeti(context->L, LUA_REGISTRYINDEX, context->func); 
+	if(lua_pcall(context->L, 0, 0, 0)) 
+		lua_pop(context->L, 1); 
 }
 
 luaM_func_begin(addhandler)
