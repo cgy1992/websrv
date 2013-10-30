@@ -66,8 +66,8 @@ void websrv_reg_flags(lua_State *L)
 }
 
 luaM_func_begin(log)
-	luaM_reqd_param(string, message)
-	web_log(message);
+	luaM_reqd_param(string, text)
+	web_log(text);
 luaM_func_end
 
 luaM_func_begin(init)
