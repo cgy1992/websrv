@@ -107,7 +107,16 @@ luaM_func_begin(init)
 	}
 luaM_func_end
 
+void handler()
+{
+}
+
 luaM_func_begin(addhandler)
+	luaM_reqd_param(userdata, server)
+	luaM_reqd_param(string, mstr)
+	luaM_reqd_param(function, func)
+	luaM_opt_param(integer, flags, 0)
+	web_server_addhandler((web_server*)server, mstr, handler, flags);
 luaM_func_end
 
 luaM_func_begin(aliasdir)
