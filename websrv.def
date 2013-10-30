@@ -1,0 +1,4 @@
+LIBRARY websrv.dll
+DESCRIPTION "simple embedded webserver for lua"
+EXPORTS
+luaopen_websrv
