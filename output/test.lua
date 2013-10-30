@@ -10,8 +10,8 @@ require 'websrv'
 
 local server = websrv.server.init{port = 80, file = 'help.log'}
 websrv.server.addhandler{server = server, mstr = '* *', func = function(write)
-	write('Content-type: text/plain\r\n\r\n')
-	write('Hello, World!\r\n')
+	websrv.client.addfile{file = 'help.log'}
+	write('End of log\n')
 end}
 
 while true do

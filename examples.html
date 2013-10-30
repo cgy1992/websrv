@@ -69,22 +69,22 @@ This example uses the function <a href='/?help=functions#web_client_addfile'>web
 <TABLE width='100%' bgcolor='CFCFCF' border=0><TR><TD>
 <CODE><PRE>
 #include "web_server.h"
-#include &lt;stdio.h&gt;
+#include <stdio.h>
 
 void logfile() {
         printf("Content-type: text/plain\r\n\r\n");
-        web_client_addfile(server.logfile); // add help.log file to output
+        web_client_addfile("help.log"); // add help.log file to output
         printf("End of log\n");
 };
         
 
-main() {
+void main() {
         struct web_server server; // server handler
-        if(!web_server_init(&server,82,"help.log",0)) { // initializate
+        if(!web_server_init(&server,80,"help.log",0)) { // initializate
                 fprintf(stderr,"can't open listen socket\n");
         };
 
-        web_server_addhandler(&server,"* /log",logfile,0); // add handler for http://host/log requests
+        web_server_addhandler(&server,"* *",logfile,0); // add handler for http://host/log requests
         while(1) {
                 web_server_run(&server);   // run server
         };
@@ -92,7 +92,22 @@ main() {
 </PRE></CODE>
 </TD></TR></TABLE>
 <HR><BR>
+<TABLE width='100%' bgcolor='CFCFCF' border=0><TR><TD>
+<CODE><PRE>
+require 'websrv'
 
+local server = websrv.server.init{port = 80, file = 'help.log'}
+websrv.server.addhandler{server = server, mstr = '* *', func = function(write)
+	websrv.client.addfile{file = 'help.log'}
+	write('End of log\n')
+end}
+
+while true do
+	websrv.server.run{server = server}
+end
+</PRE></CODE>
+</TD></TR></TABLE>
+<HR><BR>
 
 <center><A name=imageup><B><font color='000077'><a href='/image'><H3>Image Uploader</H3></a></font></B></center>
 <small> <B>used functions:</B><BR>
