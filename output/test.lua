@@ -8,7 +8,7 @@ require 'websrv'
 local server = websrv.server.init{port = 80, file = 'help.log'}
 websrv.server.addhandler{server = server, mstr = '* *', func = function(session)
 	if 'username' ~= session.username or 'password' ~= session.password then
-		websrv.client.HTTPdirective{directive = 'HTTP/1.1 401 Authorization Required'}
+		websrv.client.HTTPdirective('HTTP/1.1 401 Authorization Required')
         session.write('WWW-Authenticate: Basic realm=\"This site info\"\r\n')
         session.write('Content-type: text/html\r\n\r\n')
         session.write('\n')
@@ -22,5 +22,5 @@ websrv.server.addhandler{server = server, mstr = '* *', func = function(session)
 end}
 
 while true do
-	websrv.server.run{server = server}
+	websrv.server.run(server)
 end

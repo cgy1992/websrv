@@ -106,40 +106,40 @@ struct context_t
 //	luaL_setmetatable(L, LUA_FILEHANDLE);
 //	lua_setfield(L, -2, "output");
 
-int write(lua_State *L) 
-{ 	
-	if(lua_isstring(L, 1))
-	{
-		size_t size;
-		const char* buf = lua_tolstring(L, 1, &size);
-		if(buf && size)
-			fwrite(buf, size, 1, stdout);
-		return 0;
-	}
-	else
-		return luaL_error(L, "write function accepts one string parameter");
-}
+luaM_func_begin_(write)
+	size_t size;
+	luaM_reqd_param_(1, lstring, buf, &size)
+	if(buf && size)
+		fwrite(buf, size, 1, stdout);
+luaM_func_end
 
-int commonfunc(lua_State *L)
-{
+luaM_func_begin_(commonfunc)
 	typedef char*(*proc_t)(char*);
 	proc_t proc = (proc_t)lua_touserdata(L, lua_upvalueindex(1));
-	lua_pushstring(L, proc((char*)lua_tostring(L, 1)));
-	return 1;
-}
+	luaM_opt_param_(1, string, handle, nullptr)
+	luaM_return(string, proc((char*)handle))
+luaM_func_end
 
-int multipartfunc(lua_State *L)
-{
+luaM_func_begin_(conffunc)
+	typedef char*(*proc_t)(char*, char*);
+	proc_t proc = (proc_t)lua_touserdata(L, lua_upvalueindex(1));
+	luaM_reqd_param_(1, string, topic)
+	luaM_reqd_param_(2, string, key)
+	luaM_return(string, proc((char*)topic, (char*)key))
+luaM_func_end
+
+luaM_func_begin_(multipartfunc)
 	typedef _MultiPart(*proc_t)(char*);
 	proc_t proc = (proc_t)lua_touserdata(L, lua_upvalueindex(1));
-	_MultiPart multipart = proc((char*)lua_tostring(L, 1));
+	luaM_reqd_param_(1, string, handle)
+	_MultiPart multipart = proc((char*)handle);
 	lua_newtable(L);
 	luaM_setfield(-1, string, id, multipart.id);
 	luaM_setfield(-1, unsigned, size, multipart.size);
 	luaM_setfield(-1, string, filename, multipart.filename);
 	luaM_setfield(-1, lstring, data, multipart.data, multipart.size);
 	return 1;
-}
+luaM_func_end
 
 #define websrv_pushfunc(NAME, FUNC) \
 	lua_pushlightuserdata(L, ClientInfo->NAME); \
@@ -164,6 +164,7 @@ void handler(void* userdata)
 	websrv_pushfunc(Query, commonfunc)
 	websrv_pushfunc(Post, commonfunc)
 	websrv_pushfunc(Cookie, commonfunc)
+	websrv_pushfunc(Conf, conffunc)
 	websrv_pushfunc(MultiPart, multipartfunc)
 
 	luaM_setfield(-1, cfunction, write, write);
@@ -198,13 +199,13 @@ luaM_func_begin(aliasdir)
 		return luaL_error(L, "web_server_aliasdir failed");
 luaM_func_end
 
-luaM_func_begin(run)
-	luaM_reqd_param(userdata, server)
+luaM_func_begin_(run)
+	luaM_reqd_param_(1, userdata, server)
 	if(!web_server_run((web_server*)server))
 		return luaL_error(L, "web_server_run failed");
 luaM_func_end
 
-luaM_func_begin(getconf)
+luaM_func_begin_(getconf)
 	luaM_reqd_param(userdata, server)
 	luaM_reqd_param(string, topic)
 	luaM_reqd_param(string, key)
@@ -227,8 +228,8 @@ luaM_func_begin(useMIMEfile)
 	web_server_useMIMEfile((web_server*)server, file);
 luaM_func_end
 
-luaM_func_begin(addfile)
-	luaM_reqd_param(string, file)
+luaM_func_begin_(addfile)
+	luaM_reqd_param_(1, string, file)
 	if(!web_client_addfile((char*)file))
 		return luaL_error(L, "web_client_addfile failed");
 luaM_func_end
@@ -243,19 +244,19 @@ luaM_func_begin(setcookie)
 	web_client_setcookie((char*)key, (char*)value, (char*)timeoffset, (char*)path, (char*)domain, secure ? 1 : 0);
 luaM_func_end
 
-luaM_func_begin(deletecookie)
-	luaM_reqd_param(string, key)
+luaM_func_begin_(deletecookie)
+	luaM_reqd_param_(1, string, key)
 	web_client_deletecookie((char*)key);
 luaM_func_end
 
-luaM_func_begin(setvar)
-	luaM_reqd_param(string, name)
-	luaM_reqd_param(string, value)
+luaM_func_begin_(setvar)
+	luaM_reqd_param_(1, string, name)
+	luaM_reqd_param_(2, string, value)
 	web_client_setvar((char*)name, (char*)value);
 luaM_func_end
 
-luaM_func_begin(getvar)
-	luaM_reqd_param(string, name)
+luaM_func_begin_(getvar)
+	luaM_reqd_param_(1, string, name)
 	char* value = web_client_getvar((char*)name);
 	if(value)
 	{
@@ -263,18 +264,18 @@ luaM_func_begin(getvar)
 	}
 luaM_func_end
 
-luaM_func_begin(delvar)
-	luaM_reqd_param(string, name)
+luaM_func_begin_(delvar)
+	luaM_reqd_param_(1, string, name)
 	web_client_delvar((char*)name);
 luaM_func_end
 
-luaM_func_begin(HTTPdirective)
-	luaM_reqd_param(string, directive)
+luaM_func_begin_(HTTPdirective)
+	luaM_reqd_param_(1, string, directive)
 	web_client_HTTPdirective((char*)directive);
 luaM_func_end
 
-luaM_func_begin(contenttype)
-	luaM_reqd_param(string, extension)
+luaM_func_begin_(contenttype)
+	luaM_reqd_param_(1, string, extension)
 	web_client_contenttype((char*)extension);
 luaM_func_end
 

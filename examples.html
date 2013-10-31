@@ -49,7 +49,7 @@ websrv.server.addhandler{server = server, mstr = '* *', func = function(session)
 end}
 
 while true do
-	websrv.server.run{server = server}
+	websrv.server.run(server)
 end
 </PRE></CODE>
 </PRE></CODE>
@@ -98,12 +98,12 @@ require 'websrv'
 
 local server = websrv.server.init{port = 80, file = 'help.log'}
 websrv.server.addhandler{server = server, mstr = '* *', func = function(session)
-	websrv.client.addfile{file = 'help.log'}
+	websrv.client.addfile('help.log')
 	session.write('End of log\n')
 end}
 
 while true do
-	websrv.server.run{server = server}
+	websrv.server.run(server)
 end
 </PRE></CODE>
 </TD></TR></TABLE>
@@ -178,7 +178,12 @@ main() {
 </PRE></CODE>
 </TD></TR></TABLE>
 <HR><BR>
+<TABLE width='100%' bgcolor='CFCFCF' border=0><TR><TD>
+<CODE><PRE>
 
+</PRE></CODE>
+</TD></TR></TABLE>
+<HR><BR>
 
 <center><A name=auth><B><font color='000077'><a href='/auth'><H3>Authentication</H3></a> </font></B></center>
 <small> <B>used functions:</B><BR>
@@ -239,7 +244,7 @@ require 'websrv'
 local server = websrv.server.init{port = 80, file = 'help.log'}
 websrv.server.addhandler{server = server, mstr = '* *', func = function(session)
 	if 'username' ~= session.username or 'password' ~= session.password then
-		websrv.client.HTTPdirective{directive = 'HTTP/1.1 401 Authorization Required'}
+		websrv.client.HTTPdirective('HTTP/1.1 401 Authorization Required')
         session.write('WWW-Authenticate: Basic realm=\"This site info\"\r\n')
         session.write('Content-type: text/html\r\n\r\n')
         session.write('\n')
@@ -253,7 +258,7 @@ websrv.server.addhandler{server = server, mstr = '* *', func = function(session)
 end}
 
 while true do
-	websrv.server.run{server = server}
+	websrv.server.run(server)
 end
 </PRE></CODE>
 </TD></TR></TABLE>
