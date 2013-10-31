@@ -566,3 +566,24 @@ int main(int argc,char** argv) {
 }
 </PRE></CODE>
 </TD></TR></TABLE>
+<BR><BR>
+<TABLE width='100%' bgcolor='CFCFCF' border=0><TR><TD>
+<CODE><PRE>
+require 'websrv'
+
+local server = websrv.server.init{port = 80, file = 'help.cfg', flags = websrv.flags.USEEXTCONF}
+websrv.server.addhandler{server = server, mstr = '* *', func = function(session)
+	session.write("Content-type: text/html\r\n\r\n")
+	session.write("&lt;PRE&gt;")
+	websrv.client.addfile('help.cfg')
+	session.write("&lt;/PRE&gt;")
+	session.write("ClientInfo->Conf(\"PERSONAL_CONF\",\"PORT\")="..session.Conf("PERSONAL_CONF","PORT").."&lt;BR&gt;\n")
+	session.write("ClientInfo->Conf(\"PERSONAL_CONF\",\"IP\")="..session.Conf("PERSONAL_CONF","IP").."&lt;BR&gt;\n")
+	session.write("ClientInfo->Conf(\"LIBWEBSERVER\",\"PORT\")="..session.Conf("LIBWEBSERVER","PORT").."&lt;BR&gt;\n")
+end}
+
+while true do
+	websrv.server.run(server)
+end
+</PRE></CODE>
+</TD></TR></TABLE>
