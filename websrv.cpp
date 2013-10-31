@@ -243,6 +243,21 @@ luaM_func_begin_(addfile)
 		return luaL_error(L, "web_client_addfile failed");
 luaM_func_end
 
+luaM_func_begin(gifoutput)
+	size_t size;
+	luaM_reqd_param(lstring, data, &size)
+	luaM_reqd_param(integer, width)
+	luaM_reqd_param(integer, height)
+	luaM_opt_param(integer, transparency, 0)
+	if(web_client_gifoutput((char*)data, width, height, transparency))
+		return luaL_error(L, "web_client_gifoutput failed");
+luaM_func_end
+
+luaM_func_begin_(gifsetpalette)
+	luaM_reqd_param_(1, string, file)
+	web_client_gifsetpalette(file);
+luaM_func_end
+
 luaM_func_begin(setcookie)
 	luaM_reqd_param(string, key)
 	luaM_reqd_param(string, value)
@@ -310,6 +325,8 @@ static const struct luaL_Reg server[] =
 static const struct luaL_Reg client[] =
 {
 	{"addfile", addfile},
+	{"gifoutput", gifoutput},
+	{"gifsetpalette", gifsetpalette},
 	{"setcookie", setcookie},
 	{"deletecookie", deletecookie},
 	{"setvar", setvar},
