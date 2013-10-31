@@ -8,7 +8,7 @@ require 'websrv'
 local server = websrv.server.init{port = 80, file = 'help.log'}
 websrv.server.addhandler{server = server, mstr = '* *', func = function(session)
 	local username = session.Post('user')
-	if username then
+	if username and string.len(username) > 0 then
 		websrv.client.setcookie{key = 'username', value = username, timeoffset = '+15V'}
 	end
 	session.write("Content-type: text/html\r\n\r\n")

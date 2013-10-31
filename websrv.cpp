@@ -66,8 +66,8 @@ void websrv_reg_flags(lua_State *L)
 	websrv_reg_flag(USELEN) 
 }
 
-luaM_func_begin(log)
-	luaM_reqd_param(string, text)
+luaM_func_begin_(log)
+	luaM_reqd_param_(1, string, text)
 	web_log(text);
 luaM_func_end
 
@@ -117,7 +117,8 @@ luaM_func_begin_(commonfunc)
 	typedef char*(*proc_t)(char*);
 	proc_t proc = (proc_t)lua_touserdata(L, lua_upvalueindex(1));
 	luaM_opt_param_(1, string, handle, nullptr)
-	luaM_return(string, proc((char*)handle))
+	char* value = proc((char*)handle);
+	luaM_return(string, value)
 luaM_func_end
 
 luaM_func_begin_(conffunc)
@@ -125,7 +126,8 @@ luaM_func_begin_(conffunc)
 	proc_t proc = (proc_t)lua_touserdata(L, lua_upvalueindex(1));
 	luaM_reqd_param_(1, string, topic)
 	luaM_reqd_param_(2, string, key)
-	luaM_return(string, proc((char*)topic, (char*)key))
+	char* value = proc((char*)topic, (char*)key);
+	luaM_return(string, value)
 luaM_func_end
 
 luaM_func_begin_(multipartfunc)

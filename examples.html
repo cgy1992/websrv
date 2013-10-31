@@ -426,7 +426,7 @@ require 'websrv'
 local server = websrv.server.init{port = 80, file = 'help.log'}
 websrv.server.addhandler{server = server, mstr = '* *', func = function(session)
 	local username = session.Post('user')
-	if username then
+	if username and string.len(username) > 0 then
 		websrv.client.setcookie{key = 'username', value = username, timeoffset = '+15V'}
 	end
 	session.write("Content-type: text/html\r\n\r\n")
@@ -497,7 +497,12 @@ int main(int argc,char** argv) {
 </PRE></CODE>
 </TD></TR></TABLE>
 <HR><BR>
+<TABLE width='100%' bgcolor='CFCFCF' border=0><TR><TD>
+<CODE><PRE>
 
+</PRE></CODE>
+</TD></TR></TABLE>
+<HR><BR>
 <center><A name=confexample><B><font color='000077'><a href=/confexample><H3>Config example</H3></a></font></B></center>
 <small> <B>used functions;</B><BR>
 <a href='/?help=functions#web_server_init'>web_server_init</a><BR>
