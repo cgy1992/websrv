@@ -7,30 +7,34 @@ require 'websrv'
 
 local buffer = require 'buffer'
 
-local GIFSIDE = 320
-local gifdata = buffer(GIFSIDE * GIFSIDE)
+local image = nil
 local server = websrv.server.init{port = 80, file = 'help.log'}
-websrv.server.addhandler{server = server, mstr = '* *', func = function(session)
-	websrv.client.gifsetpalette("EGA")
+websrv.server.addhandler{server = server, mstr = '* /', func = function(session)
 	local img = session.Query("img")
-	if img and string.len(img) > 0 then
-		if 'circle' == img then
-			session.write("Content-type: image/gif\r\n\r\n")
-			local xc = tonumber(session.Query('x')) % GIFSIDE
-			local yc = tonumber(session.Query('y')) % GIFSIDE
-			local color = (math.random() % 15) + 1
-			for i = 0, 6.28, 0.01 do
-				local x = (GIFSIDE + math.round((xc + math.cos(i) * 10))) % GIFSIDE
-				local y = (GIFSIDE + math.round((yc + math.sin(i) * 10))) % GIFSIDE
-				gifdata[1 + x + (y * GIFSIDE)] = color
-			end
+	if string.len(img) > 0 then
+		if image then
+			session.write("Content-type: image/jpeg\r\n\r\n")
+			session.write(image:tostring())
 		end
-		websrv.client.gifoutput{data = gifdata:tostring(), width = GIFSIDE, height = GIFSIDE}
+		return nil
 	end
-	session.write('Content-type: text/html\r\n\r\n')
-	session.write("<center>Generated a circle (click inside the image)<BR>\n")
-	session.write(string.format("Pressed x=%s,y=%s<BR>\n", session.Query("x"), session.Query("y")))
-	session.write(string.format("<form><input type=image border=0 src='/gif?img=circle&x=%s&y=%s'></form></center>\n", session.Query("x"), session.Query("y")))
+	session.write("Content-type: text/html\r\n\r\n")
+	session.write([[
+		<HTML>
+		<BODY bgcolor='EFEFEF'>
+		<form method='POST' action='/' enctype='multipart/form-data'>
+		<input type=file name=image><BR>
+		<input type=submit value=upload><BR>
+		</form>
+	]])
+	local mpart = session.MultiPart("image")
+	if mpart and mpart.size > 0 then
+		session.write(string.format("%s<BR><img src='/?img=%s.jpg'>\n", mpart.filename, mpart.filename))
+		image = buffer(mpart.data)
+	else 
+		image = nil
+	end
+	session.write("</BODY>\n</HTML>\n")
 end}
 
 while true do

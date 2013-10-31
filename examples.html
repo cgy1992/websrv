@@ -180,7 +180,43 @@ main() {
 <HR><BR>
 <TABLE width='100%' bgcolor='CFCFCF' border=0><TR><TD>
 <CODE><PRE>
+require 'websrv'
 
+local buffer = require 'buffer'
+
+local image = nil
+local server = websrv.server.init{port = 80, file = 'help.log'}
+websrv.server.addhandler{server = server, mstr = '* /', func = function(session)
+	local img = session.Query("img")
+	if string.len(img) > 0 then
+		if image then
+			session.write("Content-type: image/jpeg\r\n\r\n")
+			session.write(image:tostring())
+		end
+		return nil
+	end
+	session.write("Content-type: text/html\r\n\r\n")
+	session.write([[
+		&lt;HTML&gt;
+		&lt;BODY bgcolor='EFEFEF'&gt;
+		&lt;form method='POST' action='/' enctype='multipart/form-data'&gt;
+		&lt;input type=file name=image&gt;&lt;BR&gt;
+		&lt;input type=submit value=upload&gt;&lt;BR&gt;
+		&lt;/form&gt;
+	]])
+	local mpart = session.MultiPart("image")
+	if mpart and mpart.size > 0 then
+		session.write(string.format("%s&lt;BR&gt;&lt;img src='/?img=%s.jpg'&gt;\n", mpart.filename, mpart.filename))
+		image = buffer(mpart.data)
+	else 
+		image = nil
+	end
+	session.write("&lt;/BODY&gt;\n&lt;/HTML&gt;\n")
+end}
+
+while true do
+	websrv.server.run(server)
+end
 </PRE></CODE>
 </TD></TR></TABLE>
 <HR><BR>
@@ -394,9 +430,9 @@ websrv.server.addhandler{server = server, mstr = '* *', func = function(session)
 		websrv.client.gifoutput{data = gifdata:tostring(), width = GIFSIDE, height = GIFSIDE}
 	end
 	session.write('Content-type: text/html\r\n\r\n')
-	session.write("<center>Generated a circle (click inside the image)<BR>\n")
-	session.write(string.format("Pressed x=%s,y=%s<BR>\n", session.Query("x"), session.Query("y")))
-	session.write(string.format("<form><input type=image border=0 src='/gif?img=circle&x=%s&y=%s'></form></center>\n", session.Query("x"), session.Query("y")))
+	session.write("&lt;center&gt;Generated a circle (click inside the image)&lt;BR&gt;\n")
+	session.write(string.format("Pressed x=%s,y=%s&lt;BR&gt;\n", session.Query("x"), session.Query("y")))
+	session.write(string.format("&lt;form&gt;&lt;input type=image border=0 src='/gif?img=circle&x=%s&y=%s'&gt;&lt;/form&gt;&lt;/center&gt;\n", session.Query("x"), session.Query("y")))
 end}
 
 while true do
