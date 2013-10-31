@@ -105,5 +105,9 @@
     <ClCompile Include="libwebserver\weblog.c">
       <Filter>libwebserver</Filter>
     </ClCompile>
+    <ClCompile Include="websrv.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="websrv.def" />
   </ItemGroup>
 </Project>

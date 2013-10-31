@@ -28,7 +28,9 @@
 
 
 #ifdef HAVE_OPENSSL
-
+#	ifdef WIN32
+#		include <winsock2.h>
+#	endif
 #include <openssl/rsa.h>       /* SSLeay stuff */
 #include <openssl/crypto.h>
 #include <openssl/x509.h>

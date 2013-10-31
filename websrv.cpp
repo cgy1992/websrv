@@ -75,7 +75,16 @@ luaM_func_begin(init)
 	luaM_opt_param(integer, port, 80)
 	luaM_opt_param(string, file, nullptr)
 	luaM_opt_param(integer, flags, 0)
+	luaM_opt_param(string, cert, nullptr)
+	luaM_opt_param(string, mime, nullptr)
 	web_server* server = new web_server;
+	if(cert)
+	{
+		web_server_useSSLcert(server, cert);
+		flags |= WS_USESSL;
+	}
+	if(mime)
+		web_server_useMIMEfile(server, mime);
 	if(web_server_init(server, port, file, flags))
 	{
 		luaM_return(lightuserdata, server);
@@ -225,17 +234,17 @@ luaM_func_begin_(getconf)
 	}
 luaM_func_end
 
-luaM_func_begin(useSSLcert)
-	luaM_reqd_param(userdata, server)
-	luaM_reqd_param(string, file)
-	web_server_useSSLcert((web_server*)server, file);
-luaM_func_end
-
-luaM_func_begin(useMIMEfile)
-	luaM_reqd_param(userdata, server)
-	luaM_reqd_param(string, file)
-	web_server_useMIMEfile((web_server*)server, file);
-luaM_func_end
+//luaM_func_begin(useSSLcert)
+//	luaM_reqd_param(userdata, server)
+//	luaM_reqd_param(string, file)
+//	web_server_useSSLcert((web_server*)server, file);
+//luaM_func_end
+//
+//luaM_func_begin(useMIMEfile)
+//	luaM_reqd_param(userdata, server)
+//	luaM_reqd_param(string, file)
+//	web_server_useMIMEfile((web_server*)server, file);
+//luaM_func_end
 
 luaM_func_begin_(addfile)
 	luaM_reqd_param_(1, string, file)
@@ -317,8 +326,8 @@ static const struct luaL_Reg server[] =
 	{"aliasdir", aliasdir},
 	{"run", run},
 	{"getconf", getconf},
-	{"useSSLcert", useSSLcert},
-	{"useMIMEfile", useMIMEfile},
+	//{"useSSLcert", useSSLcert},
+	//{"useMIMEfile", useMIMEfile},
     {nullptr, nullptr},
 };
 

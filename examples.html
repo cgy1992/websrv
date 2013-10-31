@@ -333,7 +333,17 @@ All the rest is the same as without SSL.
 <HR><BR>
 <TABLE width='100%' bgcolor='CFCFCF' border=0><TR><TD>
 <CODE><PRE>
+require 'websrv'
 
+local server = websrv.server.init{port = 443, file = 'help.log', flags = websrv.flags.USESSL, cert = 'foo-cert.pem'}
+websrv.server.addhandler{server = server, mstr = '* *', func = function(session)
+	session.write('Content-type: text/plain\r\n\r\n')
+	session.write('Hello, World!\r\n')
+end}
+
+while true do
+	websrv.server.run(server)
+end
 </PRE></CODE>
 </TD></TR></TABLE>
 All the rest is the same as without SSL. 
