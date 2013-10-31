@@ -118,7 +118,14 @@ luaM_func_begin_(commonfunc)
 	proc_t proc = (proc_t)lua_touserdata(L, lua_upvalueindex(1));
 	luaM_opt_param_(1, string, handle, nullptr)
 	char* value = proc((char*)handle);
-	luaM_return(string, value)
+	if(handle && '#' == handle[0])
+	{
+		luaM_return(integer, (int)value)
+	}
+	else
+	{
+		luaM_return(string, value)
+	}
 luaM_func_end
 
 luaM_func_begin_(conffunc)

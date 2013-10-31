@@ -499,7 +499,28 @@ int main(int argc,char** argv) {
 <HR><BR>
 <TABLE width='100%' bgcolor='CFCFCF' border=0><TR><TD>
 <CODE><PRE>
+require 'websrv'
 
+local server = websrv.server.init{port = 80, file = 'help.log'}
+websrv.server.addhandler{server = server, mstr = '* *', func = function(session)
+	local txt = {"one", "two", "three", "four", "five"}
+	session.write("Content-type: text/html\r\n\r\n")
+	session.write("&lt;form method='QUERY'&gt;\r\n")
+	for i = 1, 5 do
+		session.write("&lt;input type='checkbox' name='number' value='"..txt[i].."'&gt;\r\n&lt;BR&gt;")
+	end
+	session.write("&lt;input type='submit' name='send' value=' SEND '&gt;\r\n&lt;BR&gt;")
+	session.write("&lt;/form&gt;\r\n")
+	session.write("You have choosen &lt;font color='FF0000'&gt;"..session.Query("number").."&lt;/font&gt; numbers: \r\n")
+	for i = 1, session.Query("#number") do
+		session.write("&lt;b&gt;"..session.Query("number").."&lt;/b&gt;,\r\n\r\n")
+	end
+	session.write("...&lt;BR&gt;\r\n\r\n")
+end}
+
+while true do
+	websrv.server.run(server)
+end
 </PRE></CODE>
 </TD></TR></TABLE>
 <HR><BR>
