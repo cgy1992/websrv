@@ -278,11 +278,10 @@ See also the packetmounter example in the example directory.
 <BR>
 <TABLE width='100%' bgcolor='CFCFCF' border=0><TR><TD>
 <CODE><PRE>
-
-  
 #include "web_server.h"
 
 int main()
+{
         struct web_server serverssl;
         web_server_useSSLcert(&serverssl,"foo-cert.pem"); // Certificate file    
         if(!web_server_init(&serverssl,443,"help.log",WS_USESSL)) {
@@ -292,6 +291,13 @@ int main()
                 web_server_run(&serverssl);
         };
 };
+</PRE></CODE>
+</TD></TR></TABLE>
+All the rest is the same as without SSL. 
+<HR><BR>
+<TABLE width='100%' bgcolor='CFCFCF' border=0><TR><TD>
+<CODE><PRE>
+
 </PRE></CODE>
 </TD></TR></TABLE>
 All the rest is the same as without SSL. 
@@ -361,7 +367,12 @@ main() {
 </PRE></CODE>
 </TD></TR></TABLE>
 <HR><BR>
+<TABLE width='100%' bgcolor='CFCFCF' border=0><TR><TD>
+<CODE><PRE>
 
+</PRE></CODE>
+</TD></TR></TABLE>
+<HR><BR>
 
 
 <CENTER><A name=cookie><B><font color='000077'><a href=/cookie><H3>Cookies</H3></a></font></B></CENTER>
@@ -405,6 +416,29 @@ int main(int argc,char** argv) {
         };
 }
 
+</PRE></CODE>
+</TD></TR></TABLE>
+<HR><BR>
+<TABLE width='100%' bgcolor='CFCFCF' border=0><TR><TD>
+<CODE><PRE>
+require 'websrv'
+
+local server = websrv.server.init{port = 80, file = 'help.log'}
+websrv.server.addhandler{server = server, mstr = '* *', func = function(session)
+	local username = session.Post('user')
+	if username then
+		websrv.client.setcookie{key = 'username', value = username, timeoffset = '+15V'}
+	end
+	session.write("Content-type: text/html\r\n\r\n")
+	session.write("&lt;form method='POST'&gt;\r\n")
+	session.write("&lt;input type='text' name='user' value='"..session.Cookie('username').."'&gt;\r\n&lt;BR&gt;")
+    session.write("&lt;input type='submit' name='send' value=' GO! '&gt;\r\n&lt;BR&gt;")
+    session.write("&lt;/form&gt;\r\n")
+end}
+
+while true do
+	websrv.server.run(server)
+end
 </PRE></CODE>
 </TD></TR></TABLE>
 <HR><BR>
