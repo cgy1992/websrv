@@ -26,8 +26,9 @@ so that lua could find it.
 
 COMMON:
 
+you can look through examples.html to learn how to use libwebserver from pure C or websrv module from lua.
 
-
-you can look through output/test.lua sample script for more detailed information.
+note that some examples require mutable buffer object that can be downloaded from here https://github.com/starwing/lbuffer
+alternatively you can modify the sample code to use another lua mutable buffer module
  
 2013.10.30 10.36.28 undwad, samara, russia
