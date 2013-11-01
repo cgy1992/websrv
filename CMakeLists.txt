@@ -19,6 +19,13 @@ if (LUA_FOUND)
   message(${LUA_LIBRARY})
 endif (LUA_FOUND)
 
+FIND_PACKAGE(OpenSSL)
+if (OpenSSL_FOUND)
+  message("OpenSsl found!")
+  message(${OPENSSL_INCLUDE_DIR})
+  message(${OPENSSL_LIBRARIES})
+endif (OpenSSL_FOUND)
+
 file (GLOB FILES
 	"*.h*"
 	"*.c*"
@@ -35,9 +42,10 @@ ENDIF( NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
 
 include_directories(libwebserver)
 include_directories(${LUA_INCLUDE_DIR})
+include_directories(${OPENSSL_INCLUDE_DIR})
 
 add_library(${PROJECT} SHARED ${FILES})
 
-target_link_libraries (${PROJECT} ${LUA_LIBRARY})
+target_link_libraries (${PROJECT} ${LUA_LIBRARY} ${OPENSSL_LIBRARIES})
 
 
