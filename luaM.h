@@ -63,7 +63,7 @@ static int lua_toregistry(lua_State* L, int idx)
 #define luaM_reqd_param_(IDX, TYPE, NAME, ...) \
 	if(!lua_is##TYPE(L, IDX)) \
 		return luaL_error(L, "required parameter #" #IDX " '" #NAME "' must be of type " #TYPE); \
-	luaM_type_##TYPE NAME = lua_to##TYPE(L, IDX, __VA_ARGS__); 
+	luaM_type_##TYPE NAME = lua_to##TYPE(L, IDX, ##__VA_ARGS__); 
 
 #define luaM_reqd_param(TYPE, NAME, ...) \
 	lua_getfield(L, 1, #NAME); \
@@ -72,28 +72,28 @@ static int lua_toregistry(lua_State* L, int idx)
 		lua_pop(L, 1); \
 		return luaL_error(L, "required parameter '" #NAME "' must be of type " #TYPE); \
 	} \
-	luaM_type_##TYPE NAME = lua_to##TYPE(L, -1, __VA_ARGS__); \
+	luaM_type_##TYPE NAME = lua_to##TYPE(L, -1, ##__VA_ARGS__); \
 	lua_pop(L, 1); 
 
 #define luaM_opt_param_(IDX, TYPE, NAME, DEF, ...) \
 	luaM_type_##TYPE NAME = DEF; \
 	if(lua_is##TYPE(L, IDX)) \
-		NAME = lua_to##TYPE(L, IDX, __VA_ARGS__); 
+		NAME = lua_to##TYPE(L, IDX, ##__VA_ARGS__); 
 
 #define luaM_opt_param(TYPE, NAME, DEF, ...) \
 	luaM_type_##TYPE NAME = DEF; \
 	lua_getfield(L, 1, #NAME); \
 	if(lua_is##TYPE(L, -1)) \
-		NAME = lua_to##TYPE(L, -1, __VA_ARGS__); \
+	NAME = lua_to##TYPE(L, -1, ##__VA_ARGS__); \
 	lua_pop(L, 1); 
 
 #define luaM_return(TYPE, ...) \
-	lua_push##TYPE(L, __VA_ARGS__); \
+	lua_push##TYPE(L, ##__VA_ARGS__); \
 	result++;
 
 #define luaM_return_userdata(TYPE, INIT, NAME, ...) \
 	TYPE* NAME = (TYPE*)lua_newuserdata(L, sizeof(TYPE)); \
-	NAME->TYPE::INIT(__VA_ARGS__); \
+	NAME->TYPE::INIT(##__VA_ARGS__); \
 	lua_newtable(L); \
 	lua_pushcfunction(L, TYPE##__gc); \
 	lua_setfield(L, -2, "__gc"); \
@@ -105,7 +105,7 @@ static int lua_toregistry(lua_State* L, int idx)
 	}
 
 #define luaM_setfield(IDX, TYPE, NAME, ...) \
-	lua_push##TYPE(L, __VA_ARGS__); \
+	lua_push##TYPE(L, ##__VA_ARGS__); \
 	lua_setfield(L, IDX < 0 ? IDX - 1 : IDX, #NAME);
 
 static void luaM_print_value(lua_State* L, FILE* f, int i = -1)
