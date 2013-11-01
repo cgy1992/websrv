@@ -21,6 +21,7 @@ file (GLOB FILES
 	"libwebserver/*.c*"
 )
 
+include_directories(libwebserver)
 include_directories(${LUA_INCLUDE_DIR})
 
 add_library(${PROJECT} SHARED ${FILES})
