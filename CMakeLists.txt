@@ -10,6 +10,8 @@ SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fpermissive")
 
 set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}")
 
+add_definitions( -DHAVE_OPENSSL=1 )
+
 FIND_PACKAGE(Lua 5.2)
 if (LUA_FOUND)
   message("Lua was found!")
