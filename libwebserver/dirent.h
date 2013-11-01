@@ -19,9 +19,7 @@
 #ifndef _DIRENT
 #define _DIRENT
 
-#ifdef WIN32 
-#	include <direct.h>
-#endif
+#include <direct.h>
 
 struct dirent 
 { 
