@@ -32,7 +32,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <sys/time.h> // struct tv
-#include <sys/types.h>  // freebsd need it i gues that is no problem if other system includes it
+//#include <sys/types.h>  // freebsd need it i gues that is no problem if other system includes it
 #endif
 
 

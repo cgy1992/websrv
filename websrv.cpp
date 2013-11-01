@@ -45,7 +45,7 @@
 #elif defined(LINUX)
 #	include <unistd.h>
 #	include <sys/socket.h>
-#	include <sys/types.h>
+//#	include <sys/types.h>
 #	include <netinet/in.h>
 #	include <netdb.h>
 #	include <netinet/if_ether.h>
