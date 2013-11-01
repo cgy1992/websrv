@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 
-set (PROJECT macadr)
+set (PROJECT websrv)
 project (${PROJECT})
 
 SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fpermissive")
@@ -13,10 +13,13 @@ if (LUA_FOUND)
   message(${LUA_INCLUDE_DIR})
   message(${LUA_LIBRARY})
 endif (LUA_FOUND)
+
 file (GLOB FILES
 	"*.h"
 	"*.c"
 	"*.cpp"
+	"libwebserver/*.h"
+	"libwebserver/*.c"
 )
 
 include_directories(${LUA_INCLUDE_DIR})

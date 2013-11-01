@@ -27,7 +27,6 @@
 #	define LINUX
 #endif
 
-#include <io.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -36,6 +35,7 @@
 #include "libwebserver/web_server.h"
 
 #if defined(WIN32)
+#	include <io.h>
 #	include <winsock2.h> 
 #	pragma comment(lib, "ws2_32.lib")
 #	if defined(HAVE_OPENSSL)
