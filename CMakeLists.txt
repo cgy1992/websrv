@@ -15,11 +15,10 @@ if (LUA_FOUND)
 endif (LUA_FOUND)
 
 file (GLOB FILES
-	"*.h"
-	"*.c"
-	"*.cpp"
-	"libwebserver/*.h"
-	"libwebserver/*.c"
+	"*.h*"
+	"*.c*"
+	"libwebserver/*.h*"
+	"libwebserver/*.c*"
 )
 
 include_directories(${LUA_INCLUDE_DIR})
