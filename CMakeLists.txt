@@ -25,6 +25,8 @@ file (GLOB FILES
 )
 
 IF( NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
+	list(REMOVE_ITEM FILES ${CMAKE_CURRENT_SOURCE_DIR}/libwebserver/flock.c)
+	list(REMOVE_ITEM FILES ${CMAKE_CURRENT_SOURCE_DIR}/libwebserver/flock.h)
 	list(REMOVE_ITEM FILES ${CMAKE_CURRENT_SOURCE_DIR}/libwebserver/dirent.c)
 	list(REMOVE_ITEM FILES ${CMAKE_CURRENT_SOURCE_DIR}/libwebserver/dirent.h)
 ENDIF( NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
