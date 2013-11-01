@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 2.6)
 set (PROJECT websrv)
 project (${PROJECT})
 
+message("${CMAKE_SYSTEM_NAME}")
+message("${CMAKE_CURRENT_SOURCE_DIR}")
+
 SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fpermissive")
 
 set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}")
