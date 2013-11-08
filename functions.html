@@ -6,6 +6,8 @@
 <UL>web_server_init - Initialize webserver</UL>
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>int web_server_init(struct web_server *<U>server</U>, int <U>port</U>, const char *<U>logfile</U>, int <U>flags</U>);</UL>
+<B>LUA</B>
+<UL>require "websrv"<BR><BR>websrv.init { <U>port</U> = 80, <U>file</U> = nil, <U>flags</U> = 0, <U>cert</U> = nil, <U>mime</U> = nil} => <U>server</U></UL>
 <B>DESCRIPTION</B>
 <UL>The web_server_init() function initializes the server handler <U>server</U>, start a listen socket at port <U>port</U>, with the logfile <U>logfile</U> to produce the webserver log<BR> if WS_USEEXTCONF flag is used, the <U>logfile</U> will be the config file <BR>
 <U>flags</U> <BR>
@@ -24,6 +26,8 @@ WS_LOCAL only accepts 127.0.0.1 (local) connections
 <UL>web_server_addhandler - adds a request handler</UL>
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>int web_server_addhandler(struct web_server *<U>server</U>, const char *<U>mstr</U>, void (*<U>func</U>)(), int <U>flags</U>);</UL>
+<B>LUA</B>
+<UL>require "websrv"<BR><BR>websrv.addhandler { <U>server</U>, <U>mstr</U>, <U>func</U>, <U>flags</U> = 0 }</UL>
 <B>DESCRIPTION</B>
 <UL>The web_server_addhandler() function adds a request handler <U>mstr</U> to the server handler <U>server</U> through the function <U>func</U>.<BR>
 <U>mstr</U> is a string containing expressions (as matching files) to match with the client request (GET /<B>blah.html</B>?id=1 HTTP/1.0, will be matched by <U>mstr</U>="* /blah.html")<BR>
@@ -41,6 +45,8 @@ WS_USELEN - With this flag, library calculate the header "Content-length" and "C
 <UL>web_server_aliasdir - Generates a directory list, and use file based server</UL>
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>int web_server_aliasdir(struct web_server *<U>server</U>, const char *<U>alias</U>, char *<U>path</U>, int <U>flags</U>);</UL>
+<B>LUA</B>
+<UL>require "websrv"<BR><BR>websrv.aliasdir { <U>server</U>, <U>alias</U>, <U>path</U>, <U>flags</U> = 0 }</UL>
 <B>DESCRIPTION</B>
 <UL>The web_server_aliasdir() function adds an alias <U>alias</U> to the server handler <U>server</U> and use files from <U>path</U>.<BR>
 <U>flags:</U> <BR>
@@ -57,6 +63,8 @@ WS_USELEN - With this flag, library calculate the header "Content-length" and "C
 <UL>web_server_run - run the server</UL>
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>int web_server_run(struct web_server *<U>server</U>);</UL>
+<B>LUA</B>
+<UL>require "websrv"<BR><BR>websrv.run ( <U>server</U> )</UL>
 <B>DESCRIPTION</B>
 <UL>The web_server_run() function processes requests to the server <U>server</U>. This function must be called from the main application loop (the functions doesn't loop it self)</UL>
 <B>RETURN VALUE</B>
@@ -68,6 +76,8 @@ WS_USELEN - With this flag, library calculate the header "Content-length" and "C
 <UL>web_server_getconf - get data from config filer</UL>
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>char *web_server_getconf(struct web_server *<U>server</U>,char *<U>topic</U>,char *<U>key</U>);</UL>
+<B>LUA</B>
+<UL>require "websrv"<BR><BR>websrv.getconf { <U>server</U>, <U>topic</U>, <U>key</U> }</UL>
 <B>DESCRIPTION</B>
 <UL>The web_server_getconf() function allocates and return a string from config file related to <U>topic</U> and <U>key</U> (see <a href="/?help=functions#configfile">config file help</a>) This function must be called after the init of the var <U>server</U></UL>
 <B>RETURN VALUE</B>
@@ -79,6 +89,8 @@ WS_USELEN - With this flag, library calculate the header "Content-length" and "C
 <UL>web_server_useSSLcert - use certificate</UL>
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>void web_server_useSSLcert(struct web_server *<U>server</U>, const char *<U>file</U>);</UL>
+<B>LUA</B>
+<UL>goto web_server_init</UL>
 <B>DESCRIPTION</B>
 <UL>The web_server_useSSLcert() function tells server <U>server</U> to use certificate file <U>file</U> on ssl connections (initializated w/ flag WS_USESSL)</UL>
 <HR><BR>
@@ -88,6 +100,8 @@ WS_USELEN - With this flag, library calculate the header "Content-length" and "C
 <UL>web_server_useMIMEfile - use mime types file</UL>
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>void web_server_useMIMEfile(struct web_server *<U>server</U>, const char *<U>file</U>);</UL>
+<B>LUA</B>
+<UL>goto web_server_init</UL>
 <B>DESCRIPTION</B>
 <UL>The web_server_useMIMEfile() function tells server <U>server</U> to use mimes type file <U>file</U> for determining mime type by extension used by function <a href="/?help=functions#web_client_contenttype">web_client_contenttype()</a></UL>
 <HR><BR>
@@ -98,7 +112,9 @@ WS_USELEN - With this flag, library calculate the header "Content-length" and "C
 <UL>web_client_addstream - add an output stream to the client struct on webserver</UL>
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>int web_client_addstream(FILE *<U>stream</U>);</UL>
-<B>DESCRIPTION</B>
+<<B>LUA</B>
+<UL>require "websrv"<BR><BR>websrv.init { <U></U> = , <U></U> = , <U></U> = , <U></U> = , <U></U> = }</UL>
+B>DESCRIPTION</B>
 <UL>The web_client_addstream() function adds the stream <U>stream</U> to the output stream list in the current client node</UL>
  <B>NOTE</B>
 <UL>The web_client_addstream() function can <B>only</B> be called from functions called by gethandlers registered by <a href='/?help=functions#web_server_addhandler'>web_server_addhandler()</a>.</UL>
@@ -112,6 +128,8 @@ WS_USELEN - With this flag, library calculate the header "Content-length" and "C
 <UL>web_client_addfile - add a file to the output stream of the client struct on the webserver</UL>
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>int web_client_addfile(const char *<U>file</U>);</UL>
+<B>LUA</B>
+<UL>require "websrv"<BR><BR>websrv.addfile ( <U>file</U> )</UL>
 <B>DESCRIPTION</B>
 <UL>The web_client_addfile() function opens the file <U>file</U> and adds it as stream to the output stream list in the current client node</UL>
  <B>NOTE</B>
@@ -125,6 +143,8 @@ WS_USELEN - With this flag, library calculate the header "Content-length" and "C
 <UL>web_client_gifoutput - export data as gif</UL>
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>int web_client_gifoutput(char *<U>data</U>,int <U>w</U>,int <U>h</u>);</UL>
+<B>LUA</B>
+<UL>require "websrv"<BR><BR>websrv.gifoutput { <U>data</U>, <U>width</U>, <U>height</U>, <U>transparency</U> = 0 }</UL>
 <B>DESCRIPTION</B>
 <UL>The web_client_gifoutput() function prints to stdout a gif header (with width <U>w</U> and height <U>h</U>) and the image pointed by <U>data</U>.<BR>
 The allocated memory <U>data</U> points to mustn't be smaller than <U>w</U>*<U>h</U>.<BR>
@@ -141,6 +161,8 @@ The gif palette is described by <a href='/?help=functions#web_client_gifsetpalet
 <UL>web_client_gifsetpalette - Setup the gif palette</UL>
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>void web_client_gifsetpalette(char *<U>file</U>);</UL>
+<B>LUA</B>
+<UL>require "websrv"<BR><BR>websrv.gifsetpalette ( <U>file</U> )</UL>
 <B>DESCRIPTION</B>
 <UL>The web_client_gifsetpalette() function loads raw palette (.act) from <U>file</U> or if <U>file</U> is "EGA" then this function setups the palette to EGA mode<BR>
 </UL>
@@ -152,6 +174,8 @@ The gif palette is described by <a href='/?help=functions#web_client_gifsetpalet
 <UL>web_client_setcookie - set a cookie</UL>
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>void web_client_setcookie(char *<U>key</U>, char *<U>value</U>, char *<U>timeoffset</U>, char *<U>path</U>,char *<U>domain</U>,int <U>secure</U>);</UL>
+<B>LUA</B>
+<UL>require "websrv"<BR><BR>websrv.setcookie { <U>key</U>, <U>value</U>, <U>timeoffset</U>, <U>path</U> = nil, <U>domain</U> = nil, <U>secure</U> = false}</UL>
 <B>DESCRIPTION</B>
 <UL>The web_client_setcookie() function sets a cookie on client browser with key <U>key</U>, value <U>value</U> and expires at <U>timeoffset</U>.<BR>
 timeoffset format is one like <U>sign</U>, <U>number offset</U> and <U>directive</U> <small> (i.e +10m, 10 months)</small>
@@ -191,6 +215,8 @@ timeoffset format is one like <U>sign</U>, <U>number offset</U> and <U>directive
 <UL>web_client_deletecookie - delete a cookie</UL>
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>void web_client_deletecookie(char *<U>key</U>);</UL>
+<B>LUA</B>
+<UL>require "websrv"<BR><BR>websrv.deletecookie ( <U>key</U> )</UL>
 <B>DESCRIPTION</B>
 <UL>The web_client_deletecookie() function delete a cookie on client browser with key <U>key</U><BR>
 
@@ -204,6 +230,8 @@ timeoffset format is one like <U>sign</U>, <U>number offset</U> and <U>directive
 <UL>web_client_setvar - sets a variable</UL>
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>int web_client_setvar(char *<U>name</U>, char *<U>value</U>);</UL>
+<B>LUA</B>
+<UL>require "websrv"<BR><BR>websrv.init { <U></U> = , <U></U> = , <U></U> = , <U></U> = , <U></U> = }</UL>
 <B>DESCRIPTION</B>
 <UL>The web_client_setvar() function sets an variable named <U>name</U> with value <U>value</U> in a connection, to be used in output (only available if WS_DYNVAR flag used)<BR>
 	 web_client_setvar("bgc","#ff00dd");<BR>
@@ -218,6 +246,8 @@ timeoffset format is one like <U>sign</U>, <U>number offset</U> and <U>directive
 <UL>web_client_getvar - gets a variable value</UL>
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>int web_client_getvar(char *<U>name</U>);</UL>
+<B>LUA</B>
+<UL>require "websrv"<BR><BR>websrv.init { <U></U> = , <U></U> = , <U></U> = , <U></U> = , <U></U> = }</UL>
 <B>DESCRIPTION</B>
 <UL>The web_client_getvar() function gets the value of variable <U>name</U>, (see also <a href=/?help=functions#web_client_setvar>web_client_setvar()</a>)<BR></UL>
 <B>NOTE</B>
@@ -241,6 +271,8 @@ timeoffset format is one like <U>sign</U>, <U>number offset</U> and <U>directive
 <UL>web_client_HTTPdirective - Change the HTTP header status</UL>
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>void web_client_HTTPdirective(char *<U>directive</U>);</UL>
+<B>LUA</B>
+<UL>require "websrv"<BR><BR>websrv.init { <U></U> = , <U></U> = , <U></U> = , <U></U> = , <U></U> = }</UL>
 <B>DESCRIPTION</B>
 <UL>The web_client_HTTPdirective() function changes the HTTP header status (i.e. "HTTP/1.1 200 OK") to the string <U>directive</U><BR>
 <small><i>useful for "HTTP/1.1 401 Authorization Required" (to require a password), redirection or similar actions on the client side</i></small>.</UL>
@@ -253,6 +285,8 @@ timeoffset format is one like <U>sign</U>, <U>number offset</U> and <U>directive
 <UL>web_client_contenttype - prints to stdout the header "Content-type: */*"</UL>
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>void web_client_contenttype(char *<U>extension</U>);</UL>
+<B>LUA</B>
+<UL>require "websrv"<BR><BR>websrv.init { <U></U> = , <U></U> = , <U></U> = , <U></U> = , <U></U> = }</UL>
 <B>DESCRIPTION</B>
 <UL>The web_client_contenttype() prints to stdout the header "Content-type: */*", where '*/*' is determined by <U>extension</U> (i.e. "html" based on mimefile produces "Content-type: text/html\r\n\r\n" and "jpg" produces "Content-type: image/jpeg\r\n\r\n")<BR>
 <small>this function is used on <a href="/?help=functions#web_server_aliasdir">web_server_aliasdir()</a></small></UL>
@@ -265,6 +299,8 @@ timeoffset format is one like <U>sign</U>, <U>number offset</U> and <U>directive
 <UL>web_log - write to logfile</UL>
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>void web_log(const char *<U>format</U>,<U>...</U>);</UL>
+<B>LUA</B>
+<UL>require "websrv"<BR><BR>websrv.init { <U></U> = , <U></U> = , <U></U> = , <U></U> = , <U></U> = }</UL>
 <B>DESCRIPTION</B>
 <UL>The web_log() is similar to printf, but writes to a logfile (specified in <a href=/?help=functions#web_server_init>web_server_init()</a>). Just as printf, it doesn't add a newline at the end.</UL>
  <B>NOTE</B>
