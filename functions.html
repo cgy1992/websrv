@@ -231,7 +231,7 @@ timeoffset format is one like <U>sign</U>, <U>number offset</U> and <U>directive
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>int web_client_setvar(char *<U>name</U>, char *<U>value</U>);</UL>
 <B>LUA</B>
-<UL>require "websrv"<BR><BR>websrv.init { <U></U> = , <U></U> = , <U></U> = , <U></U> = , <U></U> = }</UL>
+<UL>require "websrv"<BR><BR>websrv.setvar { <U>name</U>, <U>value</U> }</UL>
 <B>DESCRIPTION</B>
 <UL>The web_client_setvar() function sets an variable named <U>name</U> with value <U>value</U> in a connection, to be used in output (only available if WS_DYNVAR flag used)<BR>
 	 web_client_setvar("bgc","#ff00dd");<BR>
@@ -247,7 +247,7 @@ timeoffset format is one like <U>sign</U>, <U>number offset</U> and <U>directive
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>int web_client_getvar(char *<U>name</U>);</UL>
 <B>LUA</B>
-<UL>require "websrv"<BR><BR>websrv.init { <U></U> = , <U></U> = , <U></U> = , <U></U> = , <U></U> = }</UL>
+<UL>require "websrv"<BR><BR>websrv.getvar ( <U>name</U> )</UL>
 <B>DESCRIPTION</B>
 <UL>The web_client_getvar() function gets the value of variable <U>name</U>, (see also <a href=/?help=functions#web_client_setvar>web_client_setvar()</a>)<BR></UL>
 <B>NOTE</B>
@@ -259,6 +259,8 @@ timeoffset format is one like <U>sign</U>, <U>number offset</U> and <U>directive
 <UL>web_client_delvar - delete a variable</UL>
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>int web_client_delvar(char *<U>name</U>);</UL>
+<B>LUA</B>
+<UL>require "websrv"<BR><BR>websrv.delvar ( <U>name</U> )</UL>
 <B>DESCRIPTION</B>
 <UL>The web_client_delvar() function deletes a variable with name <U>name</U><BR></UL>
 <B>NOTE</B>
@@ -272,7 +274,7 @@ timeoffset format is one like <U>sign</U>, <U>number offset</U> and <U>directive
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>void web_client_HTTPdirective(char *<U>directive</U>);</UL>
 <B>LUA</B>
-<UL>require "websrv"<BR><BR>websrv.init { <U></U> = , <U></U> = , <U></U> = , <U></U> = , <U></U> = }</UL>
+<UL>require "websrv"<BR><BR>websrv.HTTPdirective ( <U>directive</U> )</UL>
 <B>DESCRIPTION</B>
 <UL>The web_client_HTTPdirective() function changes the HTTP header status (i.e. "HTTP/1.1 200 OK") to the string <U>directive</U><BR>
 <small><i>useful for "HTTP/1.1 401 Authorization Required" (to require a password), redirection or similar actions on the client side</i></small>.</UL>
@@ -286,7 +288,7 @@ timeoffset format is one like <U>sign</U>, <U>number offset</U> and <U>directive
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>void web_client_contenttype(char *<U>extension</U>);</UL>
 <B>LUA</B>
-<UL>require "websrv"<BR><BR>websrv.init { <U></U> = , <U></U> = , <U></U> = , <U></U> = , <U></U> = }</UL>
+<UL>require "websrv"<BR><BR>websrv.contenttype ( <U>extension</U> )</UL>
 <B>DESCRIPTION</B>
 <UL>The web_client_contenttype() prints to stdout the header "Content-type: */*", where '*/*' is determined by <U>extension</U> (i.e. "html" based on mimefile produces "Content-type: text/html\r\n\r\n" and "jpg" produces "Content-type: image/jpeg\r\n\r\n")<BR>
 <small>this function is used on <a href="/?help=functions#web_server_aliasdir">web_server_aliasdir()</a></small></UL>
