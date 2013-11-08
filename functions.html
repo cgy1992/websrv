@@ -112,9 +112,7 @@ WS_USELEN - With this flag, library calculate the header "Content-length" and "C
 <UL>web_client_addstream - add an output stream to the client struct on webserver</UL>
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>int web_client_addstream(FILE *<U>stream</U>);</UL>
-<<B>LUA</B>
-<UL>require "websrv"<BR><BR>websrv.init { <U></U> = , <U></U> = , <U></U> = , <U></U> = , <U></U> = }</UL>
-B>DESCRIPTION</B>
+<B>DESCRIPTION</B>
 <UL>The web_client_addstream() function adds the stream <U>stream</U> to the output stream list in the current client node</UL>
  <B>NOTE</B>
 <UL>The web_client_addstream() function can <B>only</B> be called from functions called by gethandlers registered by <a href='/?help=functions#web_server_addhandler'>web_server_addhandler()</a>.</UL>
@@ -302,7 +300,7 @@ timeoffset format is one like <U>sign</U>, <U>number offset</U> and <U>directive
 <B>SYNOPSIS</B>
 <UL>#include "web_server.h"<BR><BR>void web_log(const char *<U>format</U>,<U>...</U>);</UL>
 <B>LUA</B>
-<UL>require "websrv"<BR><BR>websrv.init { <U></U> = , <U></U> = , <U></U> = , <U></U> = , <U></U> = }</UL>
+<UL>require "websrv"<BR><BR>websrv.log ( <U>text</U> )</UL>
 <B>DESCRIPTION</B>
 <UL>The web_log() is similar to printf, but writes to a logfile (specified in <a href=/?help=functions#web_server_init>web_server_init()</a>). Just as printf, it doesn't add a newline at the end.</UL>
  <B>NOTE</B>
@@ -334,18 +332,18 @@ extern struct ClientInfo {<BR>
 </UL>
 <B>DESCRIPTION</B>
 <UL>
-<B>ClientInfo-&gt;<U>outfd</U></B> <UL>is the filedescriptor of the current output stream (useful for cgi handlers and friends).</UL><BR>
-<B>ClientInfo-&gt;<U>inetname</U></B> <UL>a string to inetname (i.e. "127.0.0.1")</UL> <BR>
-<B>ClientInfo-&gt;<U>request</U></B> <UL>is the requested 'file' (i.e. for "GET /index.html HTTP/1.0\r\n" the ClientInfo-&gt;request is "/index.html")</UL><BR>
-<B>ClientInfo-&gt;<U>method</U></B> <UL>is the request method ("GET" or "POST" etc..)</UL><BR>
-<B>ClientInfo-&gt;<U>user</U></B> <UL>AuthRealm username</UL><BR>
-<B>ClientInfo-&gt;<U>pass</U></B> <UL>AuthRealm password</UL><BR>
-<B>ClientInfo-&gt;<U>Header(</U>char *<U>handle</U>)</B> <UL>Function to parse the header, and returns Header information (i.e. for "Host: http://127.0.0.1:81" the result of ClientInfo-&gt;Header("Host") is "http://127.0.0.1:81") if argument <U>handle</U> is NULL then this function returns whole Header from client</UL><BR>
-<B>ClientInfo-&gt;<U>Query(</U>char *<U>handle</U>)</B> <UL>A function that returns the query value from the browser (i.e for the request "http://somehost.net/req.html?id=5&f=1", ClientInfo-&gt;Query("id") is "5".if argument <U>handle</U> is NULL then this function returns whole Query string from client<BR>if the handle have the char # first (like "#handle") it returns the number of variables (usefull for checkboxes and etc...) Check <a href='/?help=examples#checkbox'>checkbox example</a></UL><BR>
-<B>ClientInfo-&gt;<U>Post(</U>char *<U>handle</U>)</B> <UL>A function that returns the Post data from the forms with method 'POST'. <U>handle</U> is the name of some &lt;input&gt; tag.if argument <U>handle</U> is NULL then this function returns whole Post data from client<BR>if the handle have the char # first (like "#handle") it returns the number of variables (usefull for checkboxes and etc...) Check <a href='/?help=examples#checkbox'>checkbox example</a></UL><BR>
-<B>ClientInfo-&gt;<U>Cookie(</U>char *<U>handle</U>)</B> <UL>A function that returns the Cookie data from browser. if argument <U>handle</U> is NULL then this function returns whole Cookiestring from client</UL><BR>
-<B>ClientInfo-&gt;<U>Conf(</U>char * <U>topic</U>,char *<U>handle</U>)</B> <UL>A function that returns an value from a <U>key</U> in <U>topic</U> in the config file if used</UL><BR>
-<B>ClientInfo-&gt;<U>MultiPart(</U>char *<U>handle</U>)</B> <UL>A function that returns a data structure from the forms with method 'POST' and enctype='multipart/form-data' (useful for uploading files). <U>handle</U> is the name of some &lt;input&gt; tag.<BR><BR>
+<B>ClientInfo-&gt;<U>outfd</U> (LUA: session.<U>outfd</U>)</B> <UL>is the filedescriptor of the current output stream (useful for cgi handlers and friends).</UL><BR>
+<B>ClientInfo-&gt;<U>inetname</U> (LUA: session.<U>inetname</U>)</B> <UL>a string to inetname (i.e. "127.0.0.1")</UL> <BR>
+<B>ClientInfo-&gt;<U>request</U> (LUA: session.<U>request</U>)</B> <UL>is the requested 'file' (i.e. for "GET /index.html HTTP/1.0\r\n" the ClientInfo-&gt;request is "/index.html")</UL><BR>
+<B>ClientInfo-&gt;<U>method</U> (LUA: session.<U>method</U>)</B> <UL>is the request method ("GET" or "POST" etc..)</UL><BR>
+<B>ClientInfo-&gt;<U>user</U> (LUA: session.<U>user</U>)</B> <UL>AuthRealm username</UL><BR>
+<B>ClientInfo-&gt;<U>pass</U> (LUA: session.<U>pass</U>)</B> <UL>AuthRealm password</UL><BR>
+<B>ClientInfo-&gt;<U>Header(</U>char *<U>handle</U>)  (LUA: session.<U>Header</U>(<U>handle</U>))</B> <UL>Function to parse the header, and returns Header information (i.e. for "Host: http://127.0.0.1:81" the result of ClientInfo-&gt;Header("Host") is "http://127.0.0.1:81") if argument <U>handle</U> is NULL then this function returns whole Header from client</UL><BR>
+<B>ClientInfo-&gt;<U>Query(</U>char *<U>handle</U>) (LUA: session.<U>Query</U>(<U>handle</U>))</B> <UL>A function that returns the query value from the browser (i.e for the request "http://somehost.net/req.html?id=5&f=1", ClientInfo-&gt;Query("id") is "5".if argument <U>handle</U> is NULL then this function returns whole Query string from client<BR>if the handle have the char # first (like "#handle") it returns the number of variables (usefull for checkboxes and etc...) Check <a href='/?help=examples#checkbox'>checkbox example</a></UL><BR>
+<B>ClientInfo-&gt;<U>Post(</U>char *<U>handle</U>) (LUA: session.<U>Post</U>(<U>handle</U>))</B> <UL>A function that returns the Post data from the forms with method 'POST'. <U>handle</U> is the name of some &lt;input&gt; tag.if argument <U>handle</U> is NULL then this function returns whole Post data from client<BR>if the handle have the char # first (like "#handle") it returns the number of variables (usefull for checkboxes and etc...) Check <a href='/?help=examples#checkbox'>checkbox example</a></UL><BR>
+<B>ClientInfo-&gt;<U>Cookie(</U>char *<U>handle</U>) (LUA: session.<U>Cookie</U>(<U>handle</U>))</B> <UL>A function that returns the Cookie data from browser. if argument <U>handle</U> is NULL then this function returns whole Cookiestring from client</UL><BR>
+<B>ClientInfo-&gt;<U>Conf(</U>char * <U>topic</U>,char *<U>handle</U>) (LUA: session.<U>Conf</U>(<U>topic</U>, <U>handle</U>))</B> <UL>A function that returns an value from a <U>key</U> in <U>topic</U> in the config file if used</UL><BR>
+<B>ClientInfo-&gt;<U>MultiPart(</U>char *<U>handle</U>) (LUA: session.<U>MultiPart</U>(<U>handle</U>))</B> <UL>A function that returns a data structure from the forms with method 'POST' and enctype='multipart/form-data' (useful for uploading files). <U>handle</U> is the name of some &lt;input&gt; tag.<BR><BR>
 the structure is<BR>
 struct _MultiPart {
 <UL>
