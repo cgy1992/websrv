@@ -1,12 +1,13 @@
-
 require 'std'
 require 'websrv'
 require "https"
+require 'pgsql'
 local url = require "url"
 local ltn12 = require "ltn12"
 local json = require 'json'
 
 local folder = 'f:/github/websrv/output/'
+local states = {}
 
 function string:replace(map)
     local result = self
@@ -77,20 +78,23 @@ local function return_error(session, code, text)
     session.write('\n\n')        
 end
 
-websrv.server.addhandler{server = server, mstr = '*/', func = function(session)
-	session.write 'Content-type: text/html\r\n\r\n'
-    session.write '<HTML><BODY bgcolor="EFEFEF"><form>'
-    for service, params in pairs(oauth2.services) do
-        if params.enabled then
-            local href = string.replace(params.href_pattern, {
-                ['{REDIRECT_URI}'] = url.escape(oauth2.redirect_uri..service), 
-                ['{CLIENT_ID}'] = params.client_id,
-                ['{STATE}'] = 'JODER',
-            })
-            session.write('<a href="'..href..'" title="enter via '..service..'">enter via '..service..'</a><br/>')
+websrv.server.addhandler{server = server, mstr = '*/login', func = function(session)
+    local state = session.Query("state")
+    if string.len(state) > 0 then
+        session.write 'Content-type: text/html\r\n\r\n'
+        session.write '<HTML><BODY bgcolor="EFEFEF">'
+        for service, params in pairs(oauth2.services) do
+            if params.enabled then
+                local href = string.replace(params.href_pattern, {
+                    ['{REDIRECT_URI}'] = url.escape(oauth2.redirect_uri..service), 
+                    ['{CLIENT_ID}'] = params.client_id,
+                    ['{STATE}'] = state,
+                })
+                session.write('<a href="'..href..'" title="enter via '..service..'">enter via '..service..'</a><br/>')
+            end
         end
-    end
-    session.write '</form>'
+        states[state] = {}
+    else return_error(session, 400, 'Bad Request') end
 end}
 
 websrv.server.addhandler{server = server, mstr = '*/oauth2/*', func = function(session)
@@ -99,7 +103,7 @@ websrv.server.addhandler{server = server, mstr = '*/oauth2/*', func = function(s
     local state = session.Query("state")
     local code = session.Query("code")
     if oauth2.services[service] and string.len(state) > 0 and string.len(code) > 0 then
-        if 'JODER' == state then
+        if states[state] then
             local params = oauth2.services[service]
 
             local body = string.replace(params.access_token_body_pattern or oauth2.access_token_body_pattern, {
@@ -114,19 +118,41 @@ websrv.server.addhandler{server = server, mstr = '*/oauth2/*', func = function(s
             local oauth = json:decode(res)
                 
             if 200 == code then
-                --local info_uri = string.replace(params.info_uri_pattern, { ['{ACCESS_TOKEN}'] = url.escape(oauth.access_token) })                
-                  local send_headers = {
-                    Authorization = "Bearer "..access_token,
-                  }
-
                 local response = {} 
                 local res, code, headers, status = ssl.https.request({
                     url = params.info_uri,
                     headers = { Authorization = "Bearer "..oauth.access_token },
                     sink = ltn12.sink.table(response),
                 })                  
-                
-                --local res, code, headers, status = ssl.https.request(params.access_token_uri, body)
+                if 200 == code then
+                    local info = json:decode(response[1])
+                    session.write 'Content-type: text/plain\r\n\r\n'
+                    session.write(tostring(info)..'\n\n')
+                    session.write(state)
+                    states[state] = info
+                else return_error(session, 401, 'Unauthorized') end
+            else return_error(session, code, res.error_description) end
+        else return_error(session, 401, 'Unauthorized') end
+    else return_error(session, 400, 'Bad Request') end
+end}
+
+websrv.server.addhandler{server = server, mstr = '*/check', func = function(session)
+    local state = session.Query("state")
+    if string.len(state) > 0 then
+        if states[state] then
+            session.write 'Content-type: text/plain\r\n\r\n'
+            session.write(tostring(states[state])..'\n\n')
+            session.write('OK')
+        else return_error(session, 401, 'Unauthorized') end
+    else return_error(session, 400, 'Bad Request') end
+end}
+
+
+while true do
+	websrv.server.run(server)
+end
+
+--[[
                 session.write 'Content-type: text/plain\r\n\r\n'
                 session.write('oauth: '..tostring(oauth)..'\n\n')
                 session.write('res: '..res..'\n\n')
@@ -134,16 +160,5 @@ websrv.server.addhandler{server = server, mstr = '*/oauth2/*', func = function(s
                 session.write('headers: '..tostring(headers)..'\n\n')
                 session.write('status: '..status..'\n\n')
                 session.write('response: '..tostring(response)..'\n\n')
-                
---                if 200 == code then
---                    session.write 'Content-type: text/plain\r\n\r\n'
---                    session.write(tostring(res))
---                else return_error(session, 401, 'Unauthorized') end
-            else return_error(session, code, res.error_description) end
-        else return_error(session, 401, 'Unauthorized') end
-    else return_error(session, 400, 'Bad Request') end
-end}
 
-while true do
-	websrv.server.run(server)
-end
+--]]                
