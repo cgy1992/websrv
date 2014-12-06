@@ -5,7 +5,6 @@ require "https"
 local url = require "url"
 local ltn12 = require "ltn12"
 local json = require 'json'
-require 'utf8'
 
 function string:replace(map)
     local result = self
@@ -44,7 +43,7 @@ local oauth2 =
             client_id = 'd2f8ddcb159d4da1b26987c686e98409',
             client_secret = 'be22fb5f63ec451caf505020cf42527e',
             access_token_uri = 'https://oauth.yandex.ru/token',
-            info_uri_pattern = 'https://login.yandex.ru/info?format=json&oauth_token={ACCESS_TOKEN}'
+            info_uri = 'https://login.yandex.ru/info?format=json'
         },
         google =
         {
@@ -53,14 +52,7 @@ local oauth2 =
             client_id = '1003457679327-3fpgd7gjo6okmscll44nu0ho9t1090gq@developer.gserviceaccount.com',
             client_secret = 'rtRe6ygLpn5IhtowxIxDus4Q',
             access_token_uri = 'https://accounts.google.com/o/oauth2/token',
-        },
-        ['mail.ru'] =
-        {
-            enabled = true,
-            href_pattern = 'https://connect.mail.ru/oauth/authorize?client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}&response_type=code&state={STATE}',
-            client_id = '727652',
-            client_secret = '8d7779e54bee723dadc22ce4fc00bb57',
-            access_token_uri = 'https://connect.mail.ru/oauth/token',
+            info_uri = 'https://www.googleapis.com/oauth2/v2/userinfo?access_token={ACCESS_TOKEN}'
         },
         facebook =
         {
@@ -116,47 +108,36 @@ websrv.server.addhandler{server = server, mstr = '*/oauth2/*', func = function(s
             })
             
             local res, code, headers, status = ssl.https.request(params.access_token_uri, body)
-            session.write 'Content-type: text/plain\r\n\r\n'
-            session.write('res: '..res..'\n\n')
-            session.write('code: '..code..'\n\n')
-            session.write('headers: '..headers..'\n\n')
-            session.write('status: '..status..'\n\n')
-            session.write('url: '..params.access_token_uri..'\n\n')
-            session.write('body: '..body..'\n\n')
             
-            --[[
-            local response = {}
-            local b, c, h, d = http.request
-            {
-                url = params.access_token_uri,
-                method = 'POST',
-                headers = 
-                {
-                    ['content-type'] = 'application/x-www-form-urlencoded',
-                    ['content-length'] = body:len()
-                },
-                source = ltn12.source.string(body),
-                sink = ltn12.sink.table(response) 
-            }
-            
-            local s,e = pcall(function()
-                local result = json:decode(response[1] or '{error_description: "invalid response"}')
-                if 200 == c then
-                    session.write 'Content-type: text/plain\r\n\r\n'
-                    session.write(tostring(result)..'\n')
-                    --local url = string.replace(params.info_uri_pattern, { ['{ACCESS_TOKEN}'] = result.access_token })
-                    --session.write(url..'\n')
-                    --local info = http.request(url)
-                    --session.write('INFO: ', tostring(info)..'\n')
-                else return_error(session, c, result.error_description) end
-            end)
-            if not s then
+            local oauth = json:decode(res)
+                
+            if 200 == code then
+                --local info_uri = string.replace(params.info_uri_pattern, { ['{ACCESS_TOKEN}'] = url.escape(oauth.access_token) })                
+                  local send_headers = {
+                    Authorization = "Bearer "..access_token,
+                  }
+
+                local response = {} 
+                local res, code, headers, status = ssl.https.request({
+                    url = params.info_uri,
+                    headers = { Authorization = "Bearer "..oauth.access_token },
+                    sink = ltn12.sink.table(response),
+                })                  
+                
+                --local res, code, headers, status = ssl.https.request(params.access_token_uri, body)
                 session.write 'Content-type: text/plain\r\n\r\n'
-                session.write(code..'\n\n')
-                session.write(params.access_token_uri..'\n\n')
-                session.write(e..'\n\n')
-            end
-            --]]
+                session.write('oauth: '..tostring(oauth)..'\n\n')
+                session.write('res: '..res..'\n\n')
+                session.write('code: '..code..'\n\n')
+                session.write('headers: '..tostring(headers)..'\n\n')
+                session.write('status: '..status..'\n\n')
+                session.write('response: '..tostring(response)..'\n\n')
+                
+--                if 200 == code then
+--                    session.write 'Content-type: text/plain\r\n\r\n'
+--                    session.write(tostring(res))
+--                else return_error(session, 401, 'Unauthorized') end
+            else return_error(session, code, res.error_description) end
         else return_error(session, 401, 'Unauthorized') end
     else return_error(session, 400, 'Bad Request') end
 end}
