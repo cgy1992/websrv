@@ -6,6 +6,8 @@ local url = require "url"
 local ltn12 = require "ltn12"
 local json = require 'json'
 
+local folder = 'f:/github/websrv/output/'
+
 function string:replace(map)
     local result = self
     for what,with in pairs(map) do
@@ -33,7 +35,7 @@ end
 local oauth2 =
 {
     access_token_body_pattern = 'code={CODE}&client_id={CLIENT_ID}&client_secret={CLIENT_SECRET}&redirect_uri={REDIRECT_URI}&grant_type=authorization_code',
-    redirect_uri = 'http://zalupa.org/oauth2/',
+    redirect_uri = 'https://zalupa.org/oauth2/',
     services = 
     {
         yandex =
@@ -49,8 +51,8 @@ local oauth2 =
         {
             enabled = true,
             href_pattern = 'https://accounts.google.com/o/oauth2/auth?redirect_uri={REDIRECT_URI}&response_type=code&client_id={CLIENT_ID}&scope=email&state={STATE}',
-            client_id = '1003457679327-3fpgd7gjo6okmscll44nu0ho9t1090gq@developer.gserviceaccount.com',
-            client_secret = 'rtRe6ygLpn5IhtowxIxDus4Q',
+            client_id = '1003457679327-gu20cis8v037ul2jvdi5rtg71mvf9qsg.apps.googleusercontent.com',
+            client_secret = '0322hnJ9OIb8ZwRzyjk35i_W',
             access_token_uri = 'https://accounts.google.com/o/oauth2/token',
             info_uri = 'https://www.googleapis.com/oauth2/v2/userinfo?access_token={ACCESS_TOKEN}'
         },
@@ -65,7 +67,7 @@ local oauth2 =
     }
 }
 
-local server = websrv.server.init{port = 80, file = 'f:/github/websrv/output/test.log'}
+local server = websrv.server.init{port = 443, file = folder..'test.log', flags = websrv.flags.USESSL, cert = folder..'foo-cert.pem'}
 
 local function return_error(session, code, text)
     websrv.client.HTTPdirective('HTTP/1.1 '..code..' '..text)
@@ -140,13 +142,6 @@ websrv.server.addhandler{server = server, mstr = '*/oauth2/*', func = function(s
             else return_error(session, code, res.error_description) end
         else return_error(session, 401, 'Unauthorized') end
     else return_error(session, 400, 'Bad Request') end
-end}
-
-websrv.server.addhandler{server = server, mstr = '*/receiver.html', func = function(session)
-    session.write("Content-type: text/html\r\n\r\n")
-    local f = io.open('f:/github/websrv/output/receiver.html ', "r")
-    session.write(f:read("*all"))
-    f:close()
 end}
 
 while true do
