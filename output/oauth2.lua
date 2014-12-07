@@ -93,31 +93,23 @@ websrv.server.addhandler{server = server, mstr = '*/oauth2', func = function(ses
             ['{CODE}'] = url.escape(code),
             ['{CLIENT_SECRET}'] = row.client_secret,
         }))
-        session.write 'Content-type: text/plain\r\n\r\n'
-        session.write('res: '..res..'\n\n')
-        session.write('code: '..code..'\n\n')
-        session.write('headers: '..tostring(headers)..'\n\n')
-        session.write('status: '..status..'\n\n')
-        
-        --[[
-        local oauth = json:decode(res)
-            
         if 200 == code then
-            local response = {} 
+            local token = json:decode(res)
+            local info = {} 
             local res, code, headers, status = ssl.https.request({
-                url = params.info_uri,
-                headers = { Authorization = "Bearer "..oauth.access_token },
-                sink = ltn12.sink.table(response),
-            })                  
+                url = row.info_uri,
+                headers = { Authorization = "Bearer "..token.access_token },
+                sink = ltn12.sink.table(info),
+            })       
             if 200 == code then
-                local info = json:decode(response[1])
-                info.expires_in = oauth.expires_in
-                oauth2.sessions[oauth.access_token] = info
-                return_redirect(session, '/oauth2/ok#service='..service..'&id='..info.id..'&token='..oauth.access_token)
-            else return_error(session, 401, 'Unauthorized') end
-        else return_error(session, code, res.error_description) end
-        --]]
-    else return_error(session, 400, 'Bad Request') end
+                local info = json:decode(info[1])
+                connection:exec("select vg_int_register_account_token('"..service.."', "..info.id.."', "..info[row.name__key].."', "..token.access_token)
+                return_redirect(session, '/oauth2/ok#service='..service..'&id='..info.id..'&token='..token.access_token)
+                return nil
+            end
+        end
+    end 
+    return_error(session, 400, 'Bad Request')
 end}
 
 websrv.server.addhandler{server = server, mstr = '*/info', func = function(session)
