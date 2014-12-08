@@ -33,7 +33,7 @@ function getNestedValue(object, ...)
 end
 
 local token_request_body = 'code={CODE}&client_id={CLIENT_ID}&client_secret={CLIENT_SECRET}&redirect_uri={REDIRECT_URI}&grant_type=authorization_code'
-local redirect_uri = 'https://zalupa.org/oauth2?service={SERVICE}'
+local redirect_uri = 'https://zalupa.org/oauth2/callback?service={SERVICE}'
 
 local connectionString = 'host=localhost dbname=vg user=undwad password=joder connect_timeout=5 keepalives=1 keepalives_idle=5 keepalives_interval=2 keepalives_count=5'
 
@@ -63,17 +63,17 @@ local function return_redirect(session, to)
 end
 
 local function return_args(session, ...)
-    session.write('Content-type: text/html\r\n\r\n')
+    session.write('Content-type: text/plain\r\n\r\n')
     for i,arg in ipairs{...} do
-        session.write(tostring(arg))
+        session.write(i..': '..tostring(arg)..'\n\n')
     end
 end
 
 local function escaped_redirect_uri_for_service(service) return url.escape(string.replace(redirect_uri, { ['{SERVICE}'] = service } )) end
 
-websrv.server.addhandler{server = server, mstr = '*/login', func = function(session)
+websrv.server.addhandler{server = server, mstr = '*/oauth2/login', func = function(session)
     local service = session.Query("service")
-    local row = query_row("select redirect_uri, client_id from vg_auths where name = '"..service.."'")
+    local row = query_row("select redirect_uri, client_id from vg_services where name = '"..service.."'")
     if row then
         return_redirect(session, string.replace(row.redirect_uri, {
             ['{REDIRECT_URI}'] = escaped_redirect_uri_for_service(service), 
@@ -82,10 +82,10 @@ websrv.server.addhandler{server = server, mstr = '*/login', func = function(sess
     else return_error(session, 400, 'Bad Request') end
 end}
 
-websrv.server.addhandler{server = server, mstr = '*/oauth2', func = function(session)
+websrv.server.addhandler{server = server, mstr = '*/oauth2/callback', func = function(session)
     local service = session.Query("service")
     local code = session.Query("code")
-    local row = query_row("select * from vg_auths where name = '"..service.."'")
+    local row = query_row("select * from vg_services where name = '"..service.."'")
     if row and string.len(code) > 0 then
         local res, code, headers, status = ssl.https.request(row.token_uri, string.replace(token_request_body, {
             ['{REDIRECT_URI}'] = escaped_redirect_uri_for_service(service), 
@@ -103,9 +103,10 @@ websrv.server.addhandler{server = server, mstr = '*/oauth2', func = function(ses
             })       
             if 200 == code then
                 local info = json:decode(info[1])
-                connection:exec("select vg_int_register_account_token('"..service.."', "..info.id.."', "..info[row.name__key].."', "..token.access_token)
-                return_redirect(session, '/oauth2/ok#service='..service..'&id='..info.id..'&token='..token.access_token)
-                return nil
+                local sql = string.format("select vg_int_register_account_token('%s', '%s', '%s', '%s', '%s')", service, info.id, info[row.name_key], token.access_token, token.expires_in..' seconds')
+                connection:exec(sql)
+                return return_args(session, token, info, sql)
+                --return return_redirect(session, '/oauth2/ok#service='..service..'&id='..info.id..'&token='..token.access_token)
             end
         end
     end 
