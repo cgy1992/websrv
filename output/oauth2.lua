@@ -136,7 +136,6 @@ websrv.server.addhandler{server = server, mstr = '*/oauth2/callback', func = fun
                 )
                 local result = query_row(sql)
                 return return_redirect(session, '/oauth2/ok#token='..result[1])
-                --return return_args(session, info, token, sql)
             end
         end
         return return_error(session, 400, 'Bad Request', res)
