@@ -49,12 +49,19 @@ local sessions = {}
 
 local server = websrv.server.init{port = 443, file = folder..'test.log', flags = websrv.flags.USESSL, cert = folder..'foo-cert.pem'}
 
-local function return_error(session, code, text)
+local function return_error(session, code, text, desc)
+    desc = desc or text
     websrv.client.HTTPdirective('HTTP/1.1 '..code..' '..tostring(text))
     session.write('Content-type: text/html\r\n\r\n')
     session.write('\n')
-    session.write(tostring(text))
+    session.write(tostring(desc))
     session.write('\n\n')        
+end
+
+local function return_text(session, text)
+    websrv.client.HTTPdirective('HTTP/1.1 200 OK')
+    session.write('Content-type: text/plain\r\n\r\n')
+    session.write(tostring(text))
 end
 
 local function return_redirect(session, to)
@@ -103,48 +110,35 @@ websrv.server.addhandler{server = server, mstr = '*/oauth2/callback', func = fun
             })       
             if 200 == code then
                 local info = json:decode(info[1])
-                local sql = string.format("select vg_int_register_account_token('%s', '%s', '%s', '%s', '%s')", service, info.id, info[row.name_key], token.access_token, token.expires_in..' seconds')
+                local sql = string.format
+                (
+                    "select vg_int_register_account_token('%s', '%s', '%s', '%s', '%s', '%s')", 
+                    service, 
+                    info[row.id_key], 
+                    info[row.email_key], 
+                    info[row.name_key], 
+                    token.access_token, 
+                    token.expires_in..' seconds'
+                )
                 connection:exec(sql)
-                return return_args(session, token, info, sql)
-                --return return_redirect(session, '/oauth2/ok#service='..service..'&id='..info.id..'&token='..token.access_token)
+                return return_redirect(session, '/oauth2/ok#service='..service..'&id='..info.id..'&token='..token.access_token)
+                --return return_args(session, info, token, sql)
             end
         end
     end 
     return_error(session, 400, 'Bad Request')
 end}
 
-websrv.server.addhandler{server = server, mstr = '*/info', func = function(session)
-    local access_token = session.Query("access_token")
-    local info = oauth2.sessions[access_token]
-    if info then
-        session.write 'Content-type: text/html\r\n\r\n'
-        session.write(tostring(info))
+websrv.server.addhandler{server = server, mstr = '*/login', func = function(session)
+    local service = session.Query("service")
+    local id = session.Query("id")
+    local token = session.Query("token")
+    local info = query_row(string.format("select vg_int_login_to_account('%s', '%s', '%s')", service, id, token))
+    if info and info[1] then return_text(session, info[1])
     else return_error(session, 401, 'Unauthorized') end
 end}
-
-websrv.server.addhandler{server = server, mstr = '*/check', func = function(session)
-    local state = session.Query("state")
-    if string.len(state) > 0 then
-        if states[state] then
-            session.write 'Content-type: text/plain\r\n\r\n'
-            session.write(tostring(states[state])..'\n\n')
-            session.write('OK')
-        else return_error(session, 401, 'Unauthorized') end
-    else return_error(session, 400, 'Bad Request') end
-end}
-
 
 while true do
 	websrv.server.run(server)
 end
 
---[[
-                session.write 'Content-type: text/plain\r\n\r\n'
-                session.write('oauth: '..tostring(oauth)..'\n\n')
-                session.write('res: '..res..'\n\n')
-                session.write('code: '..code..'\n\n')
-                session.write('headers: '..tostring(headers)..'\n\n')
-                session.write('status: '..status..'\n\n')
-                session.write('response: '..tostring(response)..'\n\n')
-
---]]                
