@@ -144,6 +144,10 @@ websrv.server.addhandler{server = server, mstr = '*/oauth2/callback', func = fun
     return return_error(session, 400, 'Bad Request')
 end}
 
+websrv.server.addhandler{server = server, mstr = '*/oauth2/ok', func = function(session)
+    return_error(session, 200, 'OK', 'SUCCESS')
+end}
+
 websrv.server.addhandler{server = server, mstr = '*/login', func = function(session)
     local service = session.Query("service")
     local id = session.Query("id")
