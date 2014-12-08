@@ -134,8 +134,8 @@ websrv.server.addhandler{server = server, mstr = '*/oauth2/callback', func = fun
                     token.access_token, 
                     token.expires_in..' seconds'
                 )
-                connection:exec(sql)
-                return return_redirect(session, '/oauth2/ok#service='..service..'&id='..info.id..'&token='..token.access_token)
+                local result = query_row(sql)
+                return return_redirect(session, '/oauth2/ok#token='..result[1])
                 --return return_args(session, info, token, sql)
             end
         end
@@ -149,10 +149,8 @@ websrv.server.addhandler{server = server, mstr = '*/oauth2/ok', func = function(
 end}
 
 websrv.server.addhandler{server = server, mstr = '*/login', func = function(session)
-    local service = session.Query("service")
-    local id = session.Query("id")
     local token = session.Query("token")
-    local info = query_row(string.format("select vg_int_login_to_account('%s', '%s', '%s')", service, id, token))
+    local info = query_row(string.format("select vg_int_login_to_account('%s')", token))
     if info and info[1] then return_text(session, info[1])
     else return_error(session, 401, 'Unauthorized') end
 end}
