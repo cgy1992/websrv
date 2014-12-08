@@ -1,9 +1,9 @@
 require 'std'
 require 'websrv'
-require "https"
+require 'https'
 require 'pgsql'
-local url = require "url"
-local ltn12 = require "ltn12"
+local url = require 'url'
+local ltn12 = require 'ltn12'
 local json = require 'json'
 
 local folder = 'f:/github/websrv/output/'
@@ -49,13 +49,27 @@ local sessions = {}
 
 local server = websrv.server.init{port = 443, file = folder..'test.log', flags = websrv.flags.USESSL, cert = folder..'foo-cert.pem'}
 
-local function return_error(session, code, text, desc)
-    desc = desc or text
-    websrv.client.HTTPdirective('HTTP/1.1 '..code..' '..tostring(text))
+local function return_error(session, code, text, description)
+    text = tostring(text)
+    description = description and tostring(description) or text
+    websrv.client.HTTPdirective('HTTP/1.1 '..code..' '..text)
     session.write('Content-type: text/html\r\n\r\n')
-    session.write('\n')
-    session.write(tostring(desc))
-    session.write('\n\n')        
+    session.write[[
+        <html>
+        <head>
+        <style>
+        h1 {text-align:center;}
+        p {text-align:center;}
+        </style>
+        </head>
+        <body>    
+    ]]
+    session.write('<h1>'..text..'</h1>')
+    session.write('<p>'..description..'</p>')
+    session.write[[
+        </body>
+        </html>
+    ]]
 end
 
 local function return_text(session, text)
@@ -125,8 +139,9 @@ websrv.server.addhandler{server = server, mstr = '*/oauth2/callback', func = fun
                 --return return_args(session, info, token, sql)
             end
         end
+        return return_error(session, 400, 'Bad Request', res)
     end 
-    return_error(session, 400, 'Bad Request')
+    return return_error(session, 400, 'Bad Request')
 end}
 
 websrv.server.addhandler{server = server, mstr = '*/login', func = function(session)
