@@ -162,12 +162,19 @@ websrv.server.addhandler{server = server, mstr = '*/oauth2/ok', func = function(
     return_error(session, 200, 'OK', 'SUCCESS')
 end}
 
-websrv.server.addhandler{server = server, mstr = '*/buildings', func = function(session)
-    local limit = session.Query("limit")
-	local res, err = connection:exec('select ogc_fid from integra_features order by ogc_fid limit '..limit)
-	if err then return return_error(session, 400, 'Bad Request', err) end
-    return_rows(session, res)
-end}
+function addSqlHandler(mstr, sql, args)
+    websrv.server.addhandler{server = server, mstr = mstr, func = function(session)
+        local params = {}
+        for i,arg in ipairs(args) do
+            params['{'..arg..'}'] = session.Query(arg)
+        end
+        local res, err = connection:exec(string.replace(sql, params))
+        if err then return return_error(session, 400, 'Bad Request', err) end
+        return_rows(session, res)
+    end}
+end
+
+addSqlHandler('*/login', "select vg_int_login_to_account('{token}')", {'token'} )
 
 while true do
 	websrv.server.run(server)
