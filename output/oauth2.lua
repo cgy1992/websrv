@@ -83,6 +83,21 @@ local function return_redirect(session, to)
     session.write('<script language="JavaScript" type="text/javascript">location.href="'..to..'"</script>')
 end
 
+local function return_json(session, object)
+    session.write('Content-type: text/json\r\n\r\n')
+    session.write(json:encode(object))
+end
+
+local function return_rows(session, res)
+    local result = {}
+    while true do
+        local row = res:fetch()
+        if not row then break end
+        result[#result + 1] = row
+    end
+    return_json(session, result)
+end
+
 local function return_args(session, ...)
     session.write('Content-type: text/plain\r\n\r\n')
     for i,arg in ipairs{...} do
@@ -147,11 +162,11 @@ websrv.server.addhandler{server = server, mstr = '*/oauth2/ok', func = function(
     return_error(session, 200, 'OK', 'SUCCESS')
 end}
 
-websrv.server.addhandler{server = server, mstr = '*/login', func = function(session)
-    local token = session.Query("token")
-    local info = query_row(string.format("select vg_int_login_to_account('%s')", token))
-    if info and info[1] then return_text(session, info[1])
-    else return_error(session, 401, 'Unauthorized') end
+websrv.server.addhandler{server = server, mstr = '*/buildings', func = function(session)
+    local limit = session.Query("limit")
+	local res, err = connection:exec('select ogc_fid from integra_features order by ogc_fid limit '..limit)
+	if err then return return_error(session, 400, 'Bad Request', err) end
+    return_rows(session, res)
 end}
 
 while true do
