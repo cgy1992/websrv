@@ -35,7 +35,7 @@ end
 local token_request_body = 'code={CODE}&client_id={CLIENT_ID}&client_secret={CLIENT_SECRET}&redirect_uri={REDIRECT_URI}&grant_type=authorization_code'
 local redirect_uri = 'https://zalupa.org/oauth2/callback?service={SERVICE}'
 
-local connectionString = 'host=localhost dbname=vg user=undwad password=joder connect_timeout=5 keepalives=1 keepalives_idle=5 keepalives_interval=2 keepalives_count=5'
+local connectionString = 'host=192.168.10.16 dbname=vg user=postgres password=joderchicas connect_timeout=5 keepalives=1 keepalives_idle=5 keepalives_interval=2 keepalives_count=5'
 
 local connection, err = pg.connect(connectionString) 
 
@@ -99,9 +99,9 @@ local function return_rows(session, res)
 end
 
 local function return_args(session, ...)
-    session.write('Content-type: text/plain\r\n\r\n')
+    session.write('Content-type: text/html\r\n\r\n')
     for i,arg in ipairs{...} do
-        session.write(i..': '..tostring(arg)..'\n\n')
+        session.write('<p>'..i..': '..tostring(arg)..'</p>')
     end
 end
 
